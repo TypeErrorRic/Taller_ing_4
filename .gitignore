@@ -1,8 +1,6 @@
 .pio
 .vscode/
-.build/
-.vscode/launch.json
-.vscode/ipch
-.pltaformio.ini
-.sdkconfig
-.sdkconfig.esp32doit-devkit-v1
+build/
+pltaformio.ini
+sdkconfig
+sdkconfig.esp32doit-devkit-v1
