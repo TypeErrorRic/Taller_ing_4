@@ -15,12 +15,7 @@ Diseñar, construir y poner a punto con amplificadores operacionales, circuitos 
 
 * Las señales entregadas por el circuito de aislamiento deben proporcionar: *El valor representativo de las señales medidas, estandarizadas entre -10 a +10Vdc.*
 
+![LOGO](Animation.gif)
 
+###### *Ricardo Pabón Serna.*
 
-<p align="center">
-  <img src="https://lottie.host/?file=93ca9798-0d09-4c76-ae14-e38f6c420d32/HF0L4loIP8.json" alt="Descripción del GIF">
-</p>
-
-<center>
-  <i><small>Ricardo Pabón Serna</small></i>
-</center>
