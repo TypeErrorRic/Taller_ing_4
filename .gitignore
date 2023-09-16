@@ -10,3 +10,4 @@ lib/**/*.md
 include/*.md
 *.ini
 test/
+*.gif
