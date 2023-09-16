@@ -8,7 +8,8 @@
 #Archivos Ocultos Personalizados:
 lib/**/*.txt
 include/*.txt
-*.ini
+sdkconfig.esp32doit-devkit-v1
+sdkconfig
 test/
 build/
 *.gif
