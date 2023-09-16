@@ -2,15 +2,10 @@
 # Taller de ingeniería IV
 
 ___
-___
 
 ## *Proyecto 2*
 
-___
-
 > *Sistema para la Medición de Potencia Activa y Reactiva en un Circuito Trifásico.*
-
-___
 
 Diseñar, construir y poner a punto con amplificadores operacionales, circuitos integrados lineales y micro controlados un medidor de señales eléctricas, el cual posea:
 
