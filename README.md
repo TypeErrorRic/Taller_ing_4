@@ -18,7 +18,7 @@ Diseñar, construir y poner a punto con amplificadores operacionales, circuitos 
 
 
 <p align="center">
-  <img src="Animation.gif" alt="Descripción del GIF">
+  <img src="https://lottie.host/?file=93ca9798-0d09-4c76-ae14-e38f6c420d32/HF0L4loIP8.json" alt="Descripción del GIF">
 </p>
 
 <center>
