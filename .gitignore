@@ -6,8 +6,8 @@
 .vscode/ipch
 
 #Archivos Ocultos Personalizados:
-lib/**/*.md
-include/*.md
+lib/**/*.txt
+include/*.txt
 *.ini
 test/
 build/
