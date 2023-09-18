@@ -11,9 +11,6 @@
 //Librerías privadas creadas:
 #include <ADC.h>
 
-//Lista de tareas a ejecutar:
-static taskDefinition * listTask[] = {&taskADC1, &taskADC2 /*Aquí se alistan las tareas*/};
-
 // Función para inicializar el microcontrolador.
 esp_err_t initDrivers(void);
 

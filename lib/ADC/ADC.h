@@ -1,4 +1,4 @@
-#include "configSistem.h"
+#include "../../include/configSistem.h"
 
 #define SIZE_TASK_ADC 1024
 
@@ -20,7 +20,7 @@ extern taskDefinition taskADC2;
 /**** Funciones para el funcionamiento ****/
 
 //Configuración del ADC:
-esp_err_t setupTaskADCs();
+void setupTaskADCs();
 //Creación de la tarea para el ADC 1:
 void ADCtask1(void *pvParameters);
 //Creación de la tarea para el ADC 2:

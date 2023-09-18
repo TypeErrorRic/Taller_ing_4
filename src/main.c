@@ -33,6 +33,4 @@ void app_main(void) {
         // Espera unos segundos antes de enviar otro mensaje (ajusta según tus necesidades)
         vTaskDelay(2000 / portTICK_PERIOD_MS);
     }
-
-    return 0;
 }

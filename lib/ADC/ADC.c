@@ -5,7 +5,7 @@
 taskDefinition taskADC1; 
 taskDefinition taskADC2;
 
-esp_err_t setupTaskADCs()
+void setupTaskADCs()
 {
     //Definir un puntero a una estructura para pasa argumentos a la tarea.
     xADCParameters * pxADCParameters;

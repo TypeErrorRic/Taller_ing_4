@@ -6,7 +6,7 @@
 #include <freertos/task.h>
 #include <esp_log.h>
 
-typedef void (*function)(void);
+typedef void (*function)(void *);
 
 // Estructura de definicion de tareas:
 typedef struct

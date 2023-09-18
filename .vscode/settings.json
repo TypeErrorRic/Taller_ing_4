@@ -4,6 +4,7 @@
         "*.md": "markdown",
         "freertos.h": "c",
         "task.h": "c",
-        "typeinfo": "cpp"
+        "typeinfo": "cpp",
+        "configsistem.h": "c"
     }
 }
