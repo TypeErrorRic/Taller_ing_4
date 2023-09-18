@@ -1,3 +1,9 @@
 {
-    "idf.adapterTargetName": "esp32"
+    "idf.adapterTargetName": "esp32",
+    "files.associations": {
+        "*.md": "markdown",
+        "freertos.h": "c",
+        "task.h": "c",
+        "typeinfo": "cpp"
+    }
 }
