@@ -1,7 +1,7 @@
 #ifndef CONFIG_SISTEM_H
 #define CONFIG_SISTEM_H
 
-// Librerias para la declaración de tareas:
+// Librerias para la declaración de objectos RTOS:
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include <esp_log.h>

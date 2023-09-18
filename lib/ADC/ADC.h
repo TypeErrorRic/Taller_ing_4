@@ -10,15 +10,18 @@ typedef struct ADC_Parameters
     unsigned int uiADCRate;		        // La frecuencia de operación.
 } xADCParameters;
 
-//Definición de tareas:
+/********** Definición de tareas **********/
+
+//Tarea 1 asociado al ADC 0:
 extern taskDefinition taskADC1;
+//Tarea 2 asociado al ADC 1:
 extern taskDefinition taskADC2;
+
+/**** Funciones para el funcionamiento ****/
 
 //Configuración del ADC:
 esp_err_t setupTaskADCs();
-
 //Creación de la tarea para el ADC 1:
 void ADCtask1(void *pvParameters);
-
 //Creación de la tarea para el ADC 2:
 void ADCtask2(void *pvParameters);
