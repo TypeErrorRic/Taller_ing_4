@@ -5,6 +5,7 @@
         "freertos.h": "c",
         "task.h": "c",
         "typeinfo": "cpp",
-        "configsistem.h": "c"
+        "configsistem.h": "c",
+        "modulosconfig.h": "c"
     }
 }
