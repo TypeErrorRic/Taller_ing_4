@@ -6,6 +6,9 @@
         "task.h": "c",
         "typeinfo": "cpp",
         "configsistem.h": "c",
-        "modulosconfig.h": "c"
+        "modulosconfig.h": "c",
+        "adc.h": "c",
+        "semphr.h": "c",
+        "timer.h": "c"
     }
 }

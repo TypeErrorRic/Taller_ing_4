@@ -17,7 +17,8 @@ typedef struct
     void *pvParameters;
     UBaseType_t uxPriority;
     TaskHandle_t *pvCreatedTask;
-
+    BaseType_t iCore;
+    
 } taskDefinition;
 
 #endif

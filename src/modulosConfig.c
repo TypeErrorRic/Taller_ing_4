@@ -11,8 +11,10 @@ esp_err_t createTask()
         //Inicialización de tareas:
         for (short positionList = 0; positionList < (short)(sizeof(listTask)/sizeof(listTask[0])); positionList++)
         {
-            xTaskCreate(listTask[positionList]->taskId, listTask[positionList]->name, listTask[positionList]->usStackDepth,
-                listTask[positionList]->pvParameters, listTask[positionList]->uxPriority, listTask[positionList]->pvCreatedTask);
+            //Creación de tareas en relación a la manera de como están enlistadas en taskDefinition:
+            xTaskCreatePinnedToCore(listTask[positionList]->taskId, listTask[positionList]->name, listTask[positionList]->usStackDepth,
+                listTask[positionList]->pvParameters, listTask[positionList]->uxPriority, listTask[positionList]->pvCreatedTask,
+                listTask[positionList]->iCore);
             ESP_LOGI(TAG, "La tarea: %s. Se ha creado", listTask[positionList]->name);
         }
         return ESP_OK;
