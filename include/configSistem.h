@@ -6,6 +6,8 @@
 #include <freertos/task.h>
 #include <esp_log.h>
 
+#define configTICK_RATE_HZ 1000  // Esto define un tick rate de 1000 ticks por segundo (1 milisegundo por tick)
+
 typedef void (*function)(void *);
 
 // Estructura de definicion de tareas:

@@ -1,7 +1,8 @@
 #include "..\..\include\modulosConfig.h"
 
 //Lista de tareas a ejecutar:
-const taskDefinition * listTask[] = {&taskADC1, &taskADC2 /*Aquí se alistan las tareas*/};
+const taskDefinition * listTask[] = {&taskADCCaptureI, &taskADCCaptureV, &taskADCProcessI, &taskADCProcessV, 
+    &xTaskCorrMaxI, &xTaskVoltMaxV /*Aquí se alistan las tareas*/};
 
 esp_err_t createTask()
 {
