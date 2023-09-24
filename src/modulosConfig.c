@@ -2,7 +2,7 @@
 
 //Lista de tareas a ejecutar:
 const taskDefinition * listTask[] = {&taskADCCaptureI, &taskADCCaptureV, &taskADCProcessI, &taskADCProcessV, 
-    &xTaskCorrMaxI, &xTaskVoltMaxV /*Aquí se alistan las tareas*/};
+    &taskCorrMaxI, &taskVoltMaxV /*Aquí se alistan las tareas*/};
 
 esp_err_t createTask()
 {
@@ -28,5 +28,6 @@ esp_err_t createTask()
 //Inicialización de variables: 
 esp_err_t initDrivers()
 {
+    initElementsADCs();
     return ESP_OK;
 }

@@ -1,8 +1,14 @@
 #include <ADC.h>
 
+taskDefinition taskCorrMaxI;
+taskDefinition taskVoltMaxV;
+
 //Manejadores de las tareas:
 TaskHandle_t xTaskCorrMaxI;
 TaskHandle_t xTaskVoltMaxV;
+
+//Regulador de acceso:
+SemaphoreHandle_t xSemaphore; //Pendiente.
 
 //Cambio de tarea para lograr sincronización de respuesta con ángulo y valor Maximo.
 #define OPORTUNIDAD 20
@@ -57,22 +63,23 @@ static void voltMaxProcess(void *pvArguments)
 void setupTaskCalculeProcess()
 {
     // Definir la Tarea para el Procesamiento de la Señal de Corriente:
-    taskADCProcessI.taskId = corrMaxProcess;
-    taskADCProcessI.name = "corrienteProcess";
-    taskADCProcessI.usStackDepth = SIZE_TASK_ADC;
-    taskADCProcessI.pvParameters = pxADCParameters;
-    taskADCProcessI.uxPriority = 5; // Configurar la prioriodad.
-    taskADCProcessI.pvCreatedTask = xTaskCorrMaxI;
-    taskADCProcessI.iCore = 0;
+    taskCorrMaxI.taskId = corrMaxProcess;
+    taskCorrMaxI.name = "corrienteProcess";
+    taskCorrMaxI.usStackDepth = SIZE_TASK_ADC;
+    taskCorrMaxI.usStackDepth = SIZE_TASK_ADC;
+    taskCorrMaxI.pvParameters = pxADCParameters;
+    taskCorrMaxI.uxPriority = 5; // Configurar la prioriodad.
+    taskCorrMaxI.pvCreatedTask = xTaskCorrMaxI;
+    taskCorrMaxI.iCore = 0;
 
     // Definir la Tarea para el procesamiento de la Señal de Voltaje:
-    taskADCProcessV.taskId = voltMaxProcess;
-    taskADCProcessV.name = "voltProcess";
-    taskADCProcessV.usStackDepth = SIZE_TASK_ADC;
-    taskADCProcessV.pvParameters = 5;
-    taskADCProcessV.uxPriority = configMAX_PRIORITIES; // Configurar la prioriodad.
-    taskADCProcessV.pvCreatedTask = xTaskVoltMaxV;
-    taskADCProcessV.iCore = 1;
+    taskVoltMaxV.taskId = voltMaxProcess;
+    taskVoltMaxV.name = "voltProcess";
+    taskVoltMaxV.usStackDepth = SIZE_TASK_ADC;
+    taskVoltMaxV.pvParameters = 5;
+    taskVoltMaxV.uxPriority = configMAX_PRIORITIES; // Configurar la prioriodad.
+    taskVoltMaxV.pvCreatedTask = xTaskVoltMaxV;
+    taskVoltMaxV.iCore = 1;
 
     //Inicalizar un semaforo para el acceso al recurso:
     SemaphoreHandle_t xSemaphore = xSemaphoreCreateCounting(3, 0);

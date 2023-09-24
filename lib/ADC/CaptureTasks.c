@@ -125,7 +125,7 @@ void initTaskCapture()
 }
 
 // Función con las llamadas requeridas para realizar la configuración de los ADCs.
-void initElementsAdcs()
+void initElementsADCs()
 {
     initTaskCapture();
     setupTaskProcessADCs();
