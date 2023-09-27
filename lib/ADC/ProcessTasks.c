@@ -4,6 +4,10 @@
 TaskHandle_t xTaskCorrProcessI;
 TaskHandle_t xTaskVoltProcessV;
 
+//Derfinición de la Tarea:
+taskDefinition taskADCProcessI; 
+taskDefinition taskADCProcessV;
+
 //Argumentos transferidos a las tareas:
 xADCParameters *pxADCParameters;
 
@@ -104,7 +108,7 @@ void setupTaskProcessADCs()
     taskADCProcessI.usStackDepth = SIZE_TASK_ADC;
     taskADCProcessI.pvParameters = pxADCParameters;
     taskADCProcessI.uxPriority = configMAX_PRIORITIES; // Configurar la Maxima prioriodad.
-    taskADCProcessI.pvCreatedTask = xTaskCorrProcessI;
+    taskADCProcessI.pvCreatedTask = &xTaskCorrProcessI;
     taskADCProcessI.iCore = 0;
 
     // Definir la Tarea para el procesamiento de la Señal de Voltaje:
@@ -113,6 +117,6 @@ void setupTaskProcessADCs()
     taskADCProcessV.usStackDepth = SIZE_TASK_ADC;
     taskADCProcessV.pvParameters = pxADCParameters;
     taskADCProcessV.uxPriority = configMAX_PRIORITIES; // Configurar la Maxima prioriodad.
-    taskADCProcessV.pvCreatedTask = xTaskVoltProcessV;
+    taskADCProcessV.pvCreatedTask = &xTaskVoltProcessV;
     taskADCProcessV.iCore = 1;
 }

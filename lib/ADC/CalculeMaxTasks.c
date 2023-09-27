@@ -1,5 +1,6 @@
 #include <ADC.h>
 
+//Definición de las Tareas:
 taskDefinition taskCorrMaxI;
 taskDefinition taskVoltMaxV;
 
@@ -66,21 +67,20 @@ void setupTaskCalculeProcess()
     taskCorrMaxI.taskId = corrMaxProcess;
     taskCorrMaxI.name = "corrienteProcess";
     taskCorrMaxI.usStackDepth = SIZE_TASK_ADC;
-    taskCorrMaxI.usStackDepth = SIZE_TASK_ADC;
     taskCorrMaxI.pvParameters = pxADCParameters;
     taskCorrMaxI.uxPriority = 5; // Configurar la prioriodad.
-    taskCorrMaxI.pvCreatedTask = xTaskCorrMaxI;
+    taskCorrMaxI.pvCreatedTask = &xTaskCorrMaxI;
     taskCorrMaxI.iCore = 0;
 
     // Definir la Tarea para el procesamiento de la Señal de Voltaje:
     taskVoltMaxV.taskId = voltMaxProcess;
     taskVoltMaxV.name = "voltProcess";
-    taskVoltMaxV.usStackDepth = SIZE_TASK_ADC;
-    taskVoltMaxV.pvParameters = 5;
-    taskVoltMaxV.uxPriority = configMAX_PRIORITIES; // Configurar la prioriodad.
-    taskVoltMaxV.pvCreatedTask = xTaskVoltMaxV;
+    taskVoltMaxV.usStackDepth = SIZE_TASK_ADC; // Estructua creada.
+    taskVoltMaxV.pvParameters = pxADCParameters;
+    taskVoltMaxV.uxPriority = 5; // Configurar la prioriodad.
+    taskVoltMaxV.pvCreatedTask = &xTaskVoltMaxV;
     taskVoltMaxV.iCore = 1;
 
     //Inicalizar un semaforo para el acceso al recurso:
-    SemaphoreHandle_t xSemaphore = xSemaphoreCreateCounting(3, 0);
+    //SemaphoreHandle_t xSemaphore = xSemaphoreCreateCounting(3, 0);
 }

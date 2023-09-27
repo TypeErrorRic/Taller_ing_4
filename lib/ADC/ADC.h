@@ -5,7 +5,6 @@
 #include <freertos/semphr.h>
 #include <freertos/queue.h>
 #include <driver/adc.h>
-#include <driver/timer.h>
 
 // Configuración del ADC:
 #define SIZE_TASK_ADC 1024
