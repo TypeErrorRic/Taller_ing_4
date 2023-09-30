@@ -1,6 +1,6 @@
 #include <ADC.h>
 
-#define PERIODO (((int)(1 / FRECUENCIA) * configTICK_RATE_HZ) >= 1 ? ((int)(1 / FRECUENCIA) * configTICK_RATE_HZ) : 1) // Periodo de Muestreo.
+#define PERIODO ((int)(configTICK_RATE_HZ / FRECUENCIA) >= 1 ? (int)(configTICK_RATE_HZ / FRECUENCIA) : 1) // Periodo de Muestreo.
 
 // Estructura para declaración de tareas:
 taskDefinition taskADCCaptureI;
@@ -33,23 +33,22 @@ static void vCaptureADCvalues0()
     for (;;)
     {
         //  Capturar la llave para utilizar la cola:
-        if ((xSemaphoreTake(xMutexProcess1, portMAX_DELAY) == pdTRUE))
+        xSemaphoreTake(xMutexProcess1, portMAX_DELAY);
+        // Capturar los datos
+        for (unsigned short i = 0; i < QUEUE_LENGTH; i++)
         {
-            for (unsigned short i = 0; i < QUEUE_LENGTH; i++)
-            {
-                adc_value = adc1_get_raw(ADC_CHANNEL1);
-                time += PERIODO;
-                // Enviar los valores a las colas de mensajes
-                xQueueSendToBack(adc1_queue, &adc_value, 10);
-                xQueueSendToBack(time1_queue, &time, 10);
-                // Detiene la tarea un intervalo de tiempo dado:
-                vTaskDelayUntil(&xLastWakeTime, PERIODO);
-            }
-            // Si la cola está llena ceder el procesamiento a otra tarea:
-            xSemaphoreGive(xMutexProcess1); // Retornar la llave a la tarea de procesamiento:
-            vTaskResume(xTaskCorrProcessI); // Volver a activar la tarea de procesamiento.
-            vTaskDelay(10);                 // Suspender la tarea durante 10 ticks para ceder al procesador.
+            adc_value = adc1_get_raw(ADC_CHANNEL1);
+            time += PERIODO;
+            // Enviar los valores a las colas de mensajes
+            xQueueSendToBack(adc1_queue, &adc_value, FACTOR_ESPERA);
+            xQueueSendToBack(time1_queue, &time, FACTOR_ESPERA);
+            // Detiene la tarea un intervalo de tiempo dado:
+            vTaskDelayUntil(&xLastWakeTime, PERIODO);
         }
+        // Si la cola está llena ceder el procesamiento a otra tarea:
+        xSemaphoreGive(xMutexProcess1); // Retornar la llave a la tarea de procesamiento:
+        vTaskResume(xTaskCorrProcessI); // Volver a activar la tarea de procesamiento.
+        vTaskDelay(FACTOR_ESPERA);      // Suspender la tarea durante 10 ticks para ceder al procesador.
     }
     vTaskDelete(NULL);
 }
@@ -69,24 +68,23 @@ static void vCaptureADCvalues1()
     for (;;)
     {
         // Capturar la llave para utilizar la cola:
-        if ((xSemaphoreTake(xMutexProcess2, portMAX_DELAY) == pdTRUE))
+        xSemaphoreTake(xMutexProcess2, portMAX_DELAY);
+        // Capturar los datos:
+        for (unsigned short i = 0; i < QUEUE_LENGTH; i++)
         {
-            for (unsigned short i = 0; i < QUEUE_LENGTH; i++)
-            {
-                // La conversión ha finalizado, puedes leer el valor del ADC aquí
-                adc2_get_raw(ADC_CHANNEL2, ADC_WIDTH_BIT_12, &adc_value);
-                time += PERIODO;
-                // Enviar los valores a las colas de mensajes
-                xQueueSendToBack(adc2_queue, &adc_value, 10);
-                xQueueSendToBack(time2_queue, &time, 10);
-                // Detiene la tarea un intervalo de tiempo dado:
-                vTaskDelayUntil(&xLastWakeTime, PERIODO);
-            }
-            // Si la cola está llena ceder el procesamiento a otra tarea:
-            xSemaphoreGive(xMutexProcess2); // Retornar la llave a la tarea de procesamiento.
-            vTaskResume(xTaskVoltProcessV); // Volver a activar la tarea de procesamiento.
-            vTaskDelay(10);                 // Suspender la tarea durante 10 ticks para que la tome el procesador.
+            // La conversión ha finalizado, puedes leer el valor del ADC aquí
+            adc2_get_raw(ADC_CHANNEL2, ADC_WIDTH_BIT_12, &adc_value);
+            time += PERIODO;
+            // Enviar los valores a las colas de mensajes
+            xQueueSendToBack(adc2_queue, &adc_value, FACTOR_ESPERA);
+            xQueueSendToBack(time2_queue, &time, FACTOR_ESPERA);
+            // Detiene la tarea un intervalo de tiempo dado:
+            vTaskDelayUntil(&xLastWakeTime, PERIODO);
         }
+        // Si la cola está llena ceder el procesamiento a otra tarea:
+        xSemaphoreGive(xMutexProcess2); // Retornar la llave a la tarea de procesamiento.
+        vTaskResume(xTaskVoltProcessV); // Volver a activar la tarea de procesamiento.
+        vTaskDelay(FACTOR_ESPERA);      // Suspender la tarea durante 10 ticks para que la tome el procesador.
     }
     vTaskDelete(NULL);
 }

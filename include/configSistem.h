@@ -24,4 +24,6 @@ typedef struct
     
 } taskDefinition;
 
+#define FACTOR_ESPERA 10
+
 #endif

@@ -13,6 +13,10 @@ taskDefinition taskADCProcessV;
 // Argumentos transferidos a las tareas:
 xADCParameters *pxADCParameters;
 
+// Semaforo para manejar la escritura de los datos:
+SemaphoreHandle_t xWriteProcessMutex1;
+SemaphoreHandle_t xWriteProcessMutex2;
+
 // Implementación de la tarea de procesamiento delos datos del ADC:
 static void vCorrienteProcess(void *pvParameters)
 {
@@ -21,37 +25,39 @@ static void vCorrienteProcess(void *pvParameters)
     // Inicializar Parametros:
     xADCParameters *pxParameters;
     pxParameters = (xADCParameters *)pvParameters;
-    //Suspender tarea:
+    // Suspender tarea:
     vTaskSuspend(NULL);
     // Bucle Principal:
     for (;;)
     {
+        ESP_LOGW(TAG, "Iniciando Procesamiento I.");
         // Tomar la LLave:
-        if (xSemaphoreTake(xMutexProcess1, (TickType_t)5) == pdTRUE)
+        xSemaphoreTake(xMutexProcess1, portMAX_DELAY);
+        // Tomar la llave para escribir en el arreglo:
+        xSemaphoreTake(xWriteProcessMutex1, (TickType_t) FACTOR_ESPERA); // Esperar 10 ticks para volverlo a intentar
+        // Copiar los datos a un arreglo para trasnferirlo a las tareas de Calculo.
+        for (unsigned short i = 0; i < QUEUE_LENGTH; i++)
         {
-            // Copiar los datos a un arreglo para trasnferirlo a las tareas de Calculo.
-            for (unsigned short i = 0; i < QUEUE_LENGTH; i++)
+            if (xQueueReceive(adc1_queue, &adc_value, (TickType_t)0))
             {
-                if (xQueueReceive(adc1_queue, &adc_value, (TickType_t)0))
-                {
-                    (pxParameters->pxdata)->listADC_I[i] = adc_value;
-                    if (xQueueReceive(time1_queue, &time, (TickType_t)0))
-                    {
-                        (pxParameters->pxdata)->listT_I[i] = time;
-                        printf(">I:%i\t", (int)adc_value);
-                        printf(">T:%i\n", (int)time);
-                    }
-                    else break;
-                }
+                (pxParameters->pxdata)->listADC_I[i] = adc_value;
+                if (xQueueReceive(time1_queue, &time, (TickType_t)0))
+                    (pxParameters->pxdata)->listT_I[i] = time;
                 else break;
             }
-            ESP_LOGI(TAG, "Captura I Completa");
-            // Suspender tarea hasta que la cola vuelva a estar lista.
-            xSemaphoreGive(xMutexProcess1);
-            // Activar nuevas Tareas:
-            //vTaskResume(xTaskCorrMaxI);
-            vTaskSuspend(NULL);
+            else break;
         }
+        // Procesar el estado de la tarea: xTaskCorrMaxI
+        while (eTaskGetState(xTaskCorrMaxI) != eSuspended) vTaskDelay(FACTOR_ESPERA);
+        //Liberar llaves:
+        xSemaphoreGive(xWriteProcessMutex1);    // Activar la lectura de datos:
+        xSemaphoreGive(xMutexProcess1);         // Activar de nuevo la captura de datos:
+        // Finalizar procesamiento de datos:
+        ESP_LOGI(TAG, "Captura I Completa");
+        //Activar tareas:
+        vTaskResume(xTaskCorrMaxI);
+        // Suspender Tarea:
+        vTaskSuspend(NULL);
     }
     vTaskDelete(NULL);
 }
@@ -64,37 +70,36 @@ static void vVoltajeProcess(void *pvParameters)
     // Inicializar Parametros:
     xADCParameters *pxParameters;
     pxParameters = (xADCParameters *)pvParameters;
-    //Suspender tarea:
+    // Suspender tarea:
     vTaskSuspend(NULL);
     // Bucle Principal:
     for (;;)
     {
-        // Tomar la LLave:
-        if (xSemaphoreTake(xMutexProcess2, portMAX_DELAY) == pdTRUE)
+        ESP_LOGW(TAG, "Iniciando Procesamiento V.");
+        // Tomar las LLave:
+        xSemaphoreTake(xMutexProcess2, portMAX_DELAY);
+        xSemaphoreTake(xWriteProcessMutex2, (TickType_t) FACTOR_ESPERA);
+        // Copiar los datos a un arreglo para trasnferirlo a las tareas de Calculo.
+        for (unsigned short i = 0; i < QUEUE_LENGTH; i++)
         {
-            // Copiar los datos a un arreglo para trasnferirlo a las tareas de Calculo.
-            for (unsigned short i = 0; i < QUEUE_LENGTH; i++)
+            if (xQueueReceive(adc2_queue, &adc_value, (TickType_t)0))
             {
-                if (xQueueReceive(adc2_queue, &adc_value, (TickType_t)0))
-                {
-                    (pxParameters->pxdata)->listADC_V[i] = adc_value;
-                    if (xQueueReceive(time2_queue, &time, (TickType_t)0))
-                    {
-                        (pxParameters->pxdata)->listT_V[i] = time;
-                        printf(">V:%i\t", (int)adc_value);
-                        printf(">T:%i\n", (int)time);
-                    }
-                    else break;
-                }
+                (pxParameters->pxdata)->listADC_V[i] = adc_value;
+                if (xQueueReceive(time2_queue, &time, (TickType_t)0))
+                    (pxParameters->pxdata)->listT_V[i] = time;
                 else break;
             }
-            ESP_LOGI(TAG, "Captura V Completa");
-            // Suspender tarea hasta que la cola vuelva a estar lista.
-            xSemaphoreGive(xMutexProcess2);
-            // Activar nuevas Tareas:
-            //vTaskResume(xTaskVoltMaxV);
-            vTaskSuspend(NULL);
+            else break;
         }
+        ESP_LOGI(TAG, "Captura V Completa");
+        // Procesar el estado de la tarea: xTaskCorrMaxI
+        while (eTaskGetState(xTaskVoltMaxV) != eSuspended) vTaskDelay(FACTOR_ESPERA);
+        //Liberar llaves:
+        xSemaphoreGive(xMutexProcess2);      // Activar de nuevo la captura de datos:
+        xSemaphoreGive(xWriteProcessMutex2); // Activar la lectura de datos:
+        // Activar Tareas:
+        vTaskResume(xTaskVoltMaxV);
+        vTaskSuspend(NULL);
     }
     vTaskDelete(NULL);
 };
@@ -137,4 +142,8 @@ void setupTaskProcessADCs()
     taskADCProcessV.uxPriority = configMAX_PRIORITIES; // Configurar la Maxima prioriodad.
     taskADCProcessV.pvCreatedTask = &xTaskVoltProcessV;
     taskADCProcessV.iCore = 1;
+
+    // Crea un mutex para controlar la escritura de de datos en el arreglo:
+    xWriteProcessMutex1 = xSemaphoreCreateMutex();
+    xWriteProcessMutex2 = xSemaphoreCreateMutex();
 }

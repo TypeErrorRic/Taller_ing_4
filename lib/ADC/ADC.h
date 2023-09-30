@@ -48,6 +48,11 @@ extern QueueHandle_t time2_queue; // Cola con los volores del instante de Captur
 extern SemaphoreHandle_t xMutexProcess1; // Disparador de Procesamiento de datos core 0.
 extern SemaphoreHandle_t xMutexProcess2; // Disparador de Procesamiento de datos core 1.
 
+extern SemaphoreHandle_t xWriteProcessMutex1; //Semaforo de control de aceso de escritura al arreglo en el core 1.
+extern SemaphoreHandle_t xWriteProcessMutex2; //Semaforo de control de aceso de escritura al arreglo en el core 2.
+extern SemaphoreHandle_t xReadCount1;         //Semaforo de control de lectura de datos del arreglo en el core 1.
+extern SemaphoreHandle_t xReadCount2;         //Semaforo de control de lectura de datos del arreglo en el core 2.
+
 /**** Configuración de Parametros de tiempo del ADC ****/
 typedef struct ADC_Parameters
 {
