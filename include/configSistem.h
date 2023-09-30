@@ -3,8 +3,11 @@
 
 // Librerias para la declaración de objectos RTOS:
 #include <freertos/FreeRTOS.h>
+#include <freertos/FreeRTOSConfig.h>
 #include <freertos/task.h>
 #include <esp_log.h>
+
+#define configTICK_RATE_HZ 1000 //Tick del sistema.
 
 typedef void (*function)(void *);
 
@@ -13,9 +16,9 @@ typedef struct
 {
     function taskId;
     char * name;
-    configSTACK_DEPTH_TYPE usStackDepth;
     void *pvParameters;
     UBaseType_t uxPriority;
+    uint32_t sizeTask;
     TaskHandle_t *pvCreatedTask;
     BaseType_t iCore;
     

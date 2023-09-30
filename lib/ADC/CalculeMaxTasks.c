@@ -32,6 +32,7 @@ static void corrMaxProcess(void *pvArguments)
             //Dar oprotunidad a la tarea de ángulo ejecutarse:
             if(i%OPORTUNIDAD == 0) taskYIELD();
         }
+        printf(">MaxI:%i\n", (int) max_value);
         //Suspender.
         vTaskSuspend(NULL);
     }
@@ -55,6 +56,7 @@ static void voltMaxProcess(void *pvArguments)
             //Dar oprotunidad a la tarea de ángulo ejecutarse:
             if(i%OPORTUNIDAD == 0) taskYIELD();
         }
+        printf(">MaxV:%i\n", (int) max_value);
         //Suspender:
         vTaskSuspend(NULL);
     }
@@ -66,7 +68,6 @@ void setupTaskCalculeProcess()
     // Definir la Tarea para el Procesamiento de la Señal de Corriente:
     taskCorrMaxI.taskId = corrMaxProcess;
     taskCorrMaxI.name = "corrienteProcess";
-    taskCorrMaxI.usStackDepth = SIZE_TASK_ADC;
     taskCorrMaxI.pvParameters = pxADCParameters;
     taskCorrMaxI.uxPriority = 5; // Configurar la prioriodad.
     taskCorrMaxI.pvCreatedTask = &xTaskCorrMaxI;
@@ -75,7 +76,6 @@ void setupTaskCalculeProcess()
     // Definir la Tarea para el procesamiento de la Señal de Voltaje:
     taskVoltMaxV.taskId = voltMaxProcess;
     taskVoltMaxV.name = "voltProcess";
-    taskVoltMaxV.usStackDepth = SIZE_TASK_ADC; // Estructua creada.
     taskVoltMaxV.pvParameters = pxADCParameters;
     taskVoltMaxV.uxPriority = 5; // Configurar la prioriodad.
     taskVoltMaxV.pvCreatedTask = &xTaskVoltMaxV;

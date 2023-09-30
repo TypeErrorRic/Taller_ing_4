@@ -6,13 +6,9 @@
 #include <freertos/queue.h>
 #include <driver/adc.h>
 
-// Configuración del ADC:
-#define SIZE_TASK_ADC 1024
-
 /*--------------- Configuración del ADC ----------------*/
 
-#define FRECUENCIA 1000000               // Frecuencia de Muestreo.
-#define PERIODO ((double)1 / FRECUENCIA) // Periodo de Muestreo.
+#define FRECUENCIA 100               // Frecuencia de Muestreo.
 
 #define ADC_CHANNEL1 ADC1_CHANNEL_0 // Canal de ADC1
 #define ADC_CHANNEL2 ADC2_CHANNEL_0 // Canal de ADC2

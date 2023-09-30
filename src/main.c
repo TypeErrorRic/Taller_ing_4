@@ -5,21 +5,22 @@
 //Archivos de cabecera con la creación de las tareas:
 #include "modulosConfig.h"
 
+// Main:
+static const char *TAG = "Main";
+
 void app_main(void) {
-    // Inicializar el micro
+    // Inicializar Perifericos del sistema:
     initDrivers();
     // Arrancar las tareas.
     switch (createTask())
     {
     case ESP_OK:
-        printf("Inicializado Correctamente");
+        ESP_LOGI(TAG, "Tareas creadas con exito.");
         break;
     default:
-        printf("Error!!!");
+        printf(TAG, "Error!!!");
         break;
     }
-    // Iniciar el scheduler de FreeRTOS
-    vTaskStartScheduler();
-
-    while (1);
+    //Finalizar.
+    ESP_LOGW(TAG, "Inicializacion correcta.");
 }
