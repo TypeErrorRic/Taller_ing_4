@@ -1,6 +1,6 @@
 #include <ADC.h>
 
-static const char *TAG = "Max Value Data";
+static const char *TAG = "Max Value";
 
 // Definición de las Tareas:
 taskDefinition taskCorrMaxI;
@@ -16,35 +16,49 @@ SemaphoreHandle_t xReadCount2;
 
 static void vCorrMaxProcess(void *pvArguments)
 {
-    unsigned short contador = 0;
+    unsigned short maxdirection = 0;
+    double maxValue[3];
+    double maxTime[3];
     // Inicializar Parametros:
     xADCParameters *pxParameters;
     pxParameters = (xADCParameters *)pvArguments;
+    vTaskSuspend(NULL);
     // Bucle principal
     for (;;)
     {
-        ESP_LOGW(TAG, "Calculando Max I.");
+        ESP_LOGW(TAG, "Max I.");
         //Sección critica de lectura de datos:
-        if(uxSemaphoreGetCount(xReadCount1) == 1) xSemaphoreTake(xWriteProcessMutex1, (TickType_t)5);
+        if(uxSemaphoreGetCount(xReadCount1) == 2) xSemaphoreTake(xWriteProcessMutex1, (TickType_t)5);
         xSemaphoreTake(xReadCount1, (TickType_t) FACTOR_ESPERA);
         //Leer los datos del arreglo para obtener los valores maximos:
-        for (unsigned short i = 0; i < QUEUE_LENGTH; i++)
+        for (unsigned short i = 1; i < (QUEUE_LENGTH - 1); i++)
         {
             // Capturar el dato Maximo:
-            contador = (pxParameters->pxdata)->listADC_I[contador] < ((pxParameters->pxdata)->listADC_I[i]) ? i : contador;
+            maxdirection = (pxParameters->pxdata)->listADC_I[maxdirection] < ((pxParameters->pxdata)->listADC_I[i]) ? i : maxdirection;
             //Prueba:
             printf(">I:%i\t", (int)((pxParameters->pxdata)->listADC_I[i]));
             printf(">T:%i\n", (int)(pxParameters->pxdata)->listT_I[i]);
         }
         // Dar oprotunidad a la tarea de ángulo ejecutarse:
         taskYIELD();
+        //Valor anterior al valor maximo:
+        maxValue[0] = (double) (3.3 / 4096)* (pxParameters->pxdata)->listADC_I[maxdirection - 1];
+        maxTime[0] = (pxParameters->pxdata)->listT_I[maxdirection - 1];
+        //Valor maximo:
+        maxValue[1] = (double) (3.3 / 4096)* (pxParameters->pxdata)->listADC_I[maxdirection];
+        maxTime[1] = (pxParameters->pxdata)->listT_I[maxdirection];
+        //Valor después del valor maximo.
+        maxValue[2] = (double) (3.3 / 4096)* (pxParameters->pxdata)->listADC_I[maxdirection + 1];
+        maxTime[2] = (pxParameters->pxdata)->listT_I[maxdirection + 1];
         //Ceder llave:
         xSemaphoreGive(xReadCount1);
         //Activar la escritura de datos:
-        if(uxSemaphoreGetCount(xReadCount1) == 1) xSemaphoreGive(xWriteProcessMutex1);
+        if(uxSemaphoreGetCount(xReadCount1) == 2) xSemaphoreGive(xWriteProcessMutex1);
         //Realizar Calculos:
+
         /*-------------------*/
-        ESP_LOGI(TAG, "Finalizado Max I");
+
+        ESP_LOGI(TAG, "Fin Max I");
         // Suspender.
         vTaskSuspend(NULL);
     }
@@ -52,33 +66,47 @@ static void vCorrMaxProcess(void *pvArguments)
 
 static void vVoltMaxProcess(void *pvArguments)
 {
-    unsigned short contador = 0;
+    unsigned short maxdirection = 0;
+    double maxValue[3] = {};
+    double maxTime[3] = {};
     // Inicializar Parametros:
     xADCParameters *pxParameters;
     pxParameters = (xADCParameters *)pvArguments;
+    vTaskSuspend(NULL);
     // Bucle principal
     for (;;)
     {
-        ESP_LOGW(TAG, "Calculando Max V.");
+        ESP_LOGW(TAG, "Max V.");
         //Sección critica de lectura de datos:
-        if(uxSemaphoreGetCount(xReadCount2) == 1) xSemaphoreTake(xWriteProcessMutex2, (TickType_t)5);
+        if(uxSemaphoreGetCount(xReadCount2) == 2) xSemaphoreTake(xWriteProcessMutex2, (TickType_t)5);
         xSemaphoreTake(xReadCount2, (TickType_t) FACTOR_ESPERA);
-        for (unsigned short i = 0; i < QUEUE_LENGTH; i++)
+        for (unsigned short i = 1; i < (QUEUE_LENGTH - 1); i++)
         {
             // Capturar el dato Maximo:
-            contador = (pxParameters->pxdata)->listADC_V[contador] < ((pxParameters->pxdata)->listADC_V[i]) ? i : contador;
+            maxdirection = (pxParameters->pxdata)->listADC_V[maxdirection] < ((pxParameters->pxdata)->listADC_V[i]) ? i : maxdirection;
             //Prueba:
             printf(">V:%i\t", (int)((pxParameters->pxdata)->listADC_V[i]));
             printf(">T:%i\n", (int)(pxParameters->pxdata)->listT_V[i]);
         }
         taskYIELD();
+        //Valor anterior al valor maximo:
+        maxValue[0] = (double) (3.3 / 4096)* (pxParameters->pxdata)->listADC_V[maxdirection - 1];
+        maxTime[0] = (pxParameters->pxdata)->listT_V[maxdirection - 1];
+        //Valor maximo:
+        maxValue[1] = (double) (3.3 / 4096)* (pxParameters->pxdata)->listADC_V[maxdirection];
+        maxTime[1] = (pxParameters->pxdata)->listT_V[maxdirection];
+        //Valor después del valor maximo.
+        maxValue[2] = (double) (3.3 / 4096)* (pxParameters->pxdata)->listADC_V[maxdirection + 1];
+        maxTime[2] = (pxParameters->pxdata)->listT_V[maxdirection + 1];
         //Ceder llave:
         xSemaphoreGive(xReadCount2);
         //Activar la escritura de datos:
-        if(uxSemaphoreGetCount(xReadCount2) == 1) xSemaphoreGive(xWriteProcessMutex2);
+        if(uxSemaphoreGetCount(xReadCount2) == 2) xSemaphoreGive(xWriteProcessMutex2);
         //Realizar Calculos:
+
         /*-------------------*/
-        ESP_LOGI(TAG, "Finalizado Max V");
+
+        ESP_LOGI(TAG, "Fin Max V");
         // Suspender:
         vTaskSuspend(NULL);
     }
@@ -89,7 +117,7 @@ void setupTaskCalculeProcess()
 {
     // Definir la Tarea para el Procesamiento de la Señal de Corriente:
     taskCorrMaxI.taskId = vCorrMaxProcess;
-    taskCorrMaxI.name = "corrienteProcess";
+    taskCorrMaxI.name = "corrienteMax";
     taskCorrMaxI.pvParameters = pxADCParameters;
     taskCorrMaxI.sizeTask = 3 * configMINIMAL_STACK_SIZE;
     taskCorrMaxI.uxPriority = 5; // Configurar la prioriodad.
@@ -98,7 +126,7 @@ void setupTaskCalculeProcess()
 
     // Definir la Tarea para el procesamiento de la Señal de Voltaje:
     taskVoltMaxV.taskId = vVoltMaxProcess;
-    taskVoltMaxV.name = "voltProcess";
+    taskVoltMaxV.name = "voltMax";
     taskVoltMaxV.pvParameters = pxADCParameters;
     taskVoltMaxV.sizeTask = 3 * configMINIMAL_STACK_SIZE;
     taskVoltMaxV.uxPriority = 5; // Configurar la prioriodad.
@@ -106,6 +134,6 @@ void setupTaskCalculeProcess()
     taskVoltMaxV.iCore = 1;
 
     // Crea un mutex para controlar el aceeso de lectura.
-    xReadCount1 = xSemaphoreCreateCounting(1, 0);
-    xReadCount2 = xSemaphoreCreateCounting(1, 0);
+    xReadCount1 = xSemaphoreCreateCounting(2, 0);
+    xReadCount2 = xSemaphoreCreateCounting(2, 0);
 }

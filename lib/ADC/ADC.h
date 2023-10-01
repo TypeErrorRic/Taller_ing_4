@@ -32,11 +32,13 @@ typedef struct Capture_Parameters
 extern taskDefinition taskADCCaptureI;  // Tarea 1 asociado a la captura de datos.
 extern taskDefinition taskADCProcessI;  // Tarea 1 asociado al procesamiento de los datos.
 extern taskDefinition taskCorrMaxI;     // Tarea asociado a la obtención del Imax.
+extern taskDefinition taskCorrCorI;     // Tarea absociado a la obtención del punto de corte de I.
 
 /*----------------------- Core 1 -----------------------*/
 extern taskDefinition taskADCCaptureV;  // Tarea 2 asociado a la captura de datos.
 extern taskDefinition taskADCProcessV;  // Tarea 2 asociado al procesamiento de los datos.
 extern taskDefinition taskVoltMaxV;     // Tarea asociado a la obtención del Vmax.
+extern taskDefinition taskVoltCorV;     // Tarea absociado a la obtención del punto de corte de V.
 
 /**Configuración de estructuras de trasmición de datos**/
 
@@ -82,6 +84,12 @@ void setupTaskCalculeProcess();
 // Manejadores de las tareas:
 extern TaskHandle_t xTaskCorrMaxI;
 extern TaskHandle_t xTaskVoltMaxV;
+
+//Inicialización de tareas de calculo de corte datos:
+void setupTaskCalculeCorProcess();
+// Manejadores de las tareas:
+extern TaskHandle_t xTaskCorrCorI;
+extern TaskHandle_t xTaskVoltCorV;
 
 /****************** Inicializar ADCs ******************/
 void initElementsADCs();

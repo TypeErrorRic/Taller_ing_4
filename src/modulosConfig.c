@@ -2,7 +2,7 @@
 
 // Lista de tareas a ejecutar:
 const taskDefinition *listTask[] = {&taskADCCaptureI, &taskADCCaptureV, &taskADCProcessI, &taskADCProcessV,
-                                    &taskVoltMaxV, &taskCorrMaxI};
+                                    &taskVoltMaxV, &taskCorrMaxI, &taskCorrCorI, &taskVoltCorV};
 
 esp_err_t createTask()
 {

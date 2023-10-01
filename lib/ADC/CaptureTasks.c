@@ -121,4 +121,5 @@ void initElementsADCs()
     initTaskCapture();
     setupTaskProcessADCs();
     setupTaskCalculeProcess();
+    setupTaskCalculeCorProcess();
 }
