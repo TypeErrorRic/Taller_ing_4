@@ -7,7 +7,7 @@
 #include <freertos/task.h>
 #include <esp_log.h>
 
-#define configTICK_RATE_HZ 1000 //Tick del sistema.
+#define configTICK_RATE_HZ 1800 //Tick del sistema.
 
 typedef void (*function)(void *);
 

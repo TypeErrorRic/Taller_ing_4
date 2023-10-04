@@ -8,7 +8,8 @@
 
 /*--------------- Configuración del ADC ----------------*/
 
-#define FRECUENCIA 100               // Frecuencia de Muestreo.
+#define FRECUENCIA 900              // Frecuencia de Muestreo.
+#define PROMEDIO 3                  // Número de muestras promediadas. No pasar de 5
 
 #define ADC_CHANNEL1 ADC1_CHANNEL_0 // Canal de ADC1
 #define ADC_CHANNEL2 ADC2_CHANNEL_0 // Canal de ADC2
@@ -21,8 +22,8 @@ typedef struct Capture_Parameters
 {
     uint32_t listADC_I[QUEUE_LENGTH]; // Lista de valores de valores de la captura del ADC del core 0
     uint32_t listADC_V[QUEUE_LENGTH]; // Lista de valores de valores de la captura del ADC del core 1
-    double listT_I[QUEUE_LENGTH];     // Instantes de captura del core 0
-    double listT_V[QUEUE_LENGTH];     // Instantes de captura del core 1
+    unsigned long listT_I[QUEUE_LENGTH];     // Instantes de captura del core 0
+    unsigned long listT_V[QUEUE_LENGTH];     // Instantes de captura del core 1
 
 } xCaptureParameters;
 
@@ -72,6 +73,9 @@ extern xADCParameters *pxADCParameters; // Estructua creada.
 
 // Inicialización de tareas de captura de datos:
 void initTaskCapture();
+//Manejadores de las tareas:
+extern TaskHandle_t xTaskCorrCaptureI;
+extern TaskHandle_t xTaskVoltCaptureV;
 
 // Inicalización de tareas de Procesamiento de datos:
 void setupTaskProcessADCs();

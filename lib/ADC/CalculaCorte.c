@@ -44,7 +44,7 @@ static void vCorrCor(void *pvArguments)
             }
         }
         // Dar oprotunidad a la tarea de ángulo ejecutarse:
-        taskYIELD();
+        vTaskDelay(3); //Minimo de 3 para que no se dañe el sistema
         //Ceder llave:
         xSemaphoreGive(xReadCount1);
         //Activar la escritura de datos:
@@ -89,7 +89,8 @@ static void vVoltCor(void *pvArguments)
                 break;
             }
         }
-        taskYIELD();
+        // Dar oprotunidad a la tarea de ángulo ejecutarse:
+        vTaskDelay(3); //Minimo de 3 para que no se dañe el sistema
         //Ceder llave:
         xSemaphoreGive(xReadCount2);
         //Activar la escritura de datos:

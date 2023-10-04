@@ -9,6 +9,7 @@
         "modulosconfig.h": "c",
         "adc.h": "c",
         "semphr.h": "c",
-        "timer.h": "c"
+        "timer.h": "c",
+        "queue.h": "c"
     }
 }
