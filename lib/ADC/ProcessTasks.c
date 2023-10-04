@@ -48,7 +48,7 @@ static void vCorrienteProcess(void *pvParameters)
         }
         // Procesar el estado de la tarea: xTaskCorrMaxI y xTaskCorrCorI:
         while (eTaskGetState(xTaskCorrMaxI) != eSuspended) vTaskDelay(FACTOR_ESPERA);
-        //while (eTaskGetState(xTaskCorrCorI) != eSuspended) vTaskDelay(FACTOR_ESPERA);
+        while (eTaskGetState(xTaskCorrCorI) != eSuspended) vTaskDelay(FACTOR_ESPERA);
         //Liberar llaves:
         xSemaphoreGive(xWriteProcessMutex1);    // Activar la lectura de datos:
         xSemaphoreGive(xMutexProcess1);         // Activar de nuevo la captura de datos:
@@ -56,7 +56,7 @@ static void vCorrienteProcess(void *pvParameters)
         ESP_LOGI(TAG, "Captura I Completa");
         //Activar tareas:
         vTaskResume(xTaskCorrMaxI);
-        //vTaskResume(xTaskCorrCorI);
+        vTaskResume(xTaskCorrCorI);
         // Suspender Tarea:
         vTaskSuspend(NULL);
     }
@@ -94,7 +94,7 @@ static void vVoltajeProcess(void *pvParameters)
         }
         // Procesar el estado de la tarea: xTaskCorrMaxI
         while (eTaskGetState(xTaskVoltMaxV) != eSuspended) vTaskDelay(FACTOR_ESPERA);
-        //while (eTaskGetState(xTaskVoltCorV) != eSuspended) vTaskDelay(FACTOR_ESPERA);
+        while (eTaskGetState(xTaskVoltCorV) != eSuspended) vTaskDelay(FACTOR_ESPERA);
         //Liberar llaves:
         xSemaphoreGive(xMutexProcess2);      // Activar de nuevo la captura de datos:
         xSemaphoreGive(xWriteProcessMutex2); // Activar la lectura de datos:
@@ -102,7 +102,7 @@ static void vVoltajeProcess(void *pvParameters)
         ESP_LOGI(TAG, "Captura v Completa");
         // Activar Tareas:
         vTaskResume(xTaskVoltMaxV);
-        //vTaskResume(xTaskVoltCorV);
+        vTaskResume(xTaskVoltCorV);
         vTaskSuspend(NULL);
     }
     vTaskDelete(NULL);

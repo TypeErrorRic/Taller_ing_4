@@ -8,7 +8,7 @@
 
 /*--------------- Configuración del ADC ----------------*/
 
-#define FRECUENCIA 900              // Frecuencia de Muestreo.
+#define FRECUENCIA 900              // Frecuencia de Muestreo 900/600/300
 #define PROMEDIO 3                  // Número de muestras promediadas. No pasar de 5
 
 #define ADC_CHANNEL1 ADC1_CHANNEL_0 // Canal de ADC1
