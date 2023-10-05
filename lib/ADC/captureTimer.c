@@ -48,7 +48,7 @@ xTimersParameters *pxParamsV;
 
 // Configurar alarma:
 static gptimer_alarm_config_t alarm_config1 = {
-    .alarm_count = ALARMA, // period = 1s
+    .alarm_count = ALARMA, 
 };
 
 // ISR:
