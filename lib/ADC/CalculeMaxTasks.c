@@ -10,10 +10,6 @@ taskDefinition taskVoltMaxV;
 TaskHandle_t xTaskCorrMaxI;
 TaskHandle_t xTaskVoltMaxV;
 
-// Regulador de acceso:
-SemaphoreHandle_t xReadCount1;
-SemaphoreHandle_t xReadCount2;
-
 static void vCorrMaxProcess(void *pvArguments)
 {
     unsigned short maxdirection = 0;
@@ -141,8 +137,4 @@ void setupTaskCalculeProcess()
     taskVoltMaxV.uxPriority = 5; // Configurar la prioriodad.
     taskVoltMaxV.pvCreatedTask = &xTaskVoltMaxV;
     taskVoltMaxV.iCore = 1;
-
-    // Crea un mutex para controlar el aceeso de lectura.
-    xReadCount1 = xSemaphoreCreateCounting(2, 0);
-    xReadCount2 = xSemaphoreCreateCounting(2, 0);
 }

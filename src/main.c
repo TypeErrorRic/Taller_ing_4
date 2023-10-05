@@ -33,6 +33,9 @@ void app_main(void)
     // Finalizar.
     ESP_LOGW(TAG, "Inicializacion correcta.");
 
+    init_timers();
+    
+    /*
     // Iniciar tareas:
     // Deshabilitar la programación preemptiva antes de reanudar tareas
     vTaskSuspendAll();
@@ -43,4 +46,5 @@ void app_main(void)
 
     // Habilitar nuevamente la programación preemptiva
     xTaskResumeAll();
+    */
 }

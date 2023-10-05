@@ -13,10 +13,6 @@ taskDefinition taskADCProcessV;
 // Argumentos transferidos a las tareas:
 xADCParameters *pxADCParameters;
 
-// Semaforo para manejar la escritura de los datos:
-SemaphoreHandle_t xWriteProcessMutex1;
-SemaphoreHandle_t xWriteProcessMutex2;
-
 // Implementación de la tarea de procesamiento delos datos del ADC:
 static void vCorrienteProcess(void *pvParameters)
 {
@@ -146,8 +142,4 @@ void setupTaskProcessADCs()
     taskADCProcessV.uxPriority = configMAX_PRIORITIES; // Configurar la Maxima prioriodad.
     taskADCProcessV.pvCreatedTask = &xTaskVoltProcessV;
     taskADCProcessV.iCore = 1;
-
-    // Crea un mutex para controlar la escritura de de datos en el arreglo:
-    xWriteProcessMutex1 = xSemaphoreCreateMutex();
-    xWriteProcessMutex2 = xSemaphoreCreateMutex();
 }

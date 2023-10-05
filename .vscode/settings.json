@@ -10,6 +10,7 @@
         "adc.h": "c",
         "semphr.h": "c",
         "timer.h": "c",
-        "queue.h": "c"
+        "queue.h": "c",
+        "gptimer.h": "c"
     }
 }

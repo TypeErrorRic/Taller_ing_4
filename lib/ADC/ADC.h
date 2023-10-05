@@ -5,6 +5,7 @@
 #include <freertos/semphr.h>
 #include <freertos/queue.h>
 #include <driver/adc.h>
+#include <driver/gptimer.h>
 
 /*--------------- Configuración del ADC ----------------*/
 
@@ -71,11 +72,14 @@ extern xADCParameters *pxADCParameters; // Estructua creada.
 
 /***************** Creación de Tareas *****************/
 
-// Inicialización de tareas de captura de datos:
-void initTaskCapture();
-//Manejadores de las tareas:
-extern TaskHandle_t xTaskCorrCaptureI;
-extern TaskHandle_t xTaskVoltCaptureV;
+// Inicialización de estructura de datos:
+void initTask();
+
+// Inicialización de captura de datos por Interrupciones:
+void init_timers();
+//Manejadores de las interrupciones:
+extern gptimer_handle_t gptimer1;
+extern gptimer_handle_t gptimer2;
 
 // Inicalización de tareas de Procesamiento de datos:
 void setupTaskProcessADCs();
