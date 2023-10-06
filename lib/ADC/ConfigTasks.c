@@ -4,7 +4,9 @@
 QueueHandle_t adc1_queue;  // Cola con los valores del ADC de Corriente.
 QueueHandle_t adc2_queue;  // Cola con los valores del ADC de Voltaje.
 QueueHandle_t time1_queue; // Cola con los valores del instante de Captura de la Corriente.
+QueueHandle_t time1_RTOS;  // Valor del instante en que el sistema empezo a tomar muestras en relación con el reloj de Freertos.
 QueueHandle_t time2_queue; // Cola con los volores del instante de Captura del Voltaje.
+QueueHandle_t time2_RTOS;  // Valor del instante en que el sistema empezo a tomar muestras en relación con el reloj de Freertos.
 
 // Semaforos de control del ADCs:
 SemaphoreHandle_t xMutexProcess1; // Declaración del semáforo del core 0.
@@ -25,10 +27,14 @@ void initTask()
     xMutexProcess1 = xSemaphoreCreateMutex();
     xMutexProcess2 = xSemaphoreCreateMutex();
     // Inicializar colas de trasmición:
-    adc1_queue = xQueueCreate(QUEUE_LENGTH, sizeof(int));
-    time1_queue = xQueueCreate(QUEUE_LENGTH, sizeof(uint64_t));
-    adc2_queue = xQueueCreate(QUEUE_LENGTH, sizeof(int));
-    time2_queue = xQueueCreate(QUEUE_LENGTH, sizeof(uint64_t));
+    // Core 1
+    adc1_queue = xQueueCreate(QUEUE_LENGTH, sizeof(unsigned int));
+    time1_queue = xQueueCreate(QUEUE_LENGTH, sizeof(unsigned long long));
+    time1_RTOS = xQueueCreate(1, sizeof(TickType_t));
+    // Core 2
+    adc2_queue = xQueueCreate(QUEUE_LENGTH, sizeof(unsigned int));
+    time2_queue = xQueueCreate(QUEUE_LENGTH, sizeof(unsigned long long));
+    time2_RTOS = xQueueCreate(1, sizeof(TickType_t));
     // Crea un mutex para controlar la escritura de de datos en el arreglo:
     xWriteProcessMutex1 = xSemaphoreCreateMutex();
     xWriteProcessMutex2 = xSemaphoreCreateMutex();

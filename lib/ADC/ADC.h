@@ -10,24 +10,25 @@
 
 /*--------------- Configuración del ADC ----------------*/
 
-#define FRECUENCIA 1 // Frecuencia de Muestreo 900/600/300
+#define FRECUENCIA 1        // Frecuencia de Muestreo 900/600/300
+#define FRECUENCIA_SENAL 60 // Frecuencia original de la señal a muestrear en hz.
 
 #define ADC_CHANNEL1 ADC1_CHANNEL_0 // Canal de ADC1
 #define ADC_CHANNEL2 ADC2_CHANNEL_0 // Canal de ADC2
 
 // Definir el tamaño de la cola:
-#define QUEUE_LENGTH (FRECUENCIA > 300 ? (((unsigned int) FRECUENCIA / 60)*2) : 10)
+#define QUEUE_LENGTH (FRECUENCIA > 300 ? (((unsigned int)FRECUENCIA / FRECUENCIA_SENAL) * 2) : 10)
 
 // Pin GPIO para el LED incorporado en el ESP32 DevKit
-#define LED_PIN GPIO_NUM_2 
+#define LED_PIN GPIO_NUM_2
 
 // Estructura de captura de datos de los ADCs:
 typedef struct Capture_Parameters
 {
     unsigned int listADC_I[QUEUE_LENGTH]; // Lista de valores de valores de la captura del ADC del core 0
     unsigned int listADC_V[QUEUE_LENGTH]; // Lista de valores de valores de la captura del ADC del core 1
-    unsigned long listT_I[QUEUE_LENGTH];  // Instantes de captura del core 0
-    unsigned long listT_V[QUEUE_LENGTH];  // Instantes de captura del core 1
+    double listT_I[QUEUE_LENGTH];         // Instantes de captura del core 0
+    double listT_V[QUEUE_LENGTH];         // Instantes de captura del core 1
 } xCaptureParameters;
 
 /****************** Definición de tareas ****************/
@@ -49,7 +50,9 @@ extern taskDefinition taskVoltCorV;    // Tarea absociado a la obtención del pu
 extern QueueHandle_t adc1_queue;  // Cola con los valores del ADC de Corriente.
 extern QueueHandle_t adc2_queue;  // Cola con los valores del ADC de Voltaje.
 extern QueueHandle_t time1_queue; // Cola con los valores del instante de Captura de la Corriente.
+extern QueueHandle_t time1_RTOS;  // Valor del instante en que el sistema empezo a tomar muestras en relación con el reloj de Freertos.
 extern QueueHandle_t time2_queue; // Cola con los volores del instante de Captura del Voltaje.
+extern QueueHandle_t time2_RTOS;  // Valor del instante en que el sistema empezo a tomar muestras en relación con el reloj de Freertos.
 
 extern SemaphoreHandle_t xMutexProcess1; // Disparador de Procesamiento de datos core 0.
 extern SemaphoreHandle_t xMutexProcess2; // Disparador de Procesamiento de datos core 1.

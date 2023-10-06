@@ -34,13 +34,13 @@ static void vCorrMaxProcess(void *pvArguments)
         }
         // Valor anterior al valor maximo:
         maxValue[0] = (double)(3.3 / 4096) * (pxParameters->pxdata)->listADC_I[maxdirection - 1];
-        maxTime[0] = ((pxParameters->pxdata)->listT_I[maxdirection - 1]) / configTICK_RATE_HZ;
+        maxTime[0] = (double)(pxParameters->pxdata)->listT_I[maxdirection - 1];
         // Valor maximo:
         maxValue[1] = (double)(3.3 / 4096) * (pxParameters->pxdata)->listADC_I[maxdirection];
-        maxTime[1] = (double)(pxParameters->pxdata)->listT_I[maxdirection] / configTICK_RATE_HZ;
+        maxTime[1] = (double)(pxParameters->pxdata)->listT_I[maxdirection];
         // Valor después del valor maximo.
         maxValue[2] = (double)(3.3 / 4096) * (pxParameters->pxdata)->listADC_I[maxdirection + 1];
-        maxTime[2] = (double)(pxParameters->pxdata)->listT_I[maxdirection + 1] / configTICK_RATE_HZ;
+        maxTime[2] = (double)(pxParameters->pxdata)->listT_I[maxdirection + 1];
         // Ceder llave:
         xSemaphoreGive(xReadCount1);
         // Activar la escritura de datos:
@@ -87,13 +87,13 @@ static void vVoltMaxProcess(void *pvArguments)
         }
         // Valor anterior al valor maximo:
         maxValue[0] = (double)(3.3 / 4096) * (pxParameters->pxdata)->listADC_V[maxdirection - 1];
-        maxTime[0] = (double)(pxParameters->pxdata)->listT_V[maxdirection - 1] / configTICK_RATE_HZ;
+        maxTime[0] = (double)(pxParameters->pxdata)->listT_V[maxdirection - 1];
         // Valor maximo:
         maxValue[1] = (double)(3.3 / 4096) * (pxParameters->pxdata)->listADC_V[maxdirection];
-        maxTime[1] = (double)(pxParameters->pxdata)->listT_V[maxdirection] / configTICK_RATE_HZ;
+        maxTime[1] = (double)(pxParameters->pxdata)->listT_V[maxdirection];
         // Valor después del valor maximo.
         maxValue[2] = (double)(3.3 / 4096) * (pxParameters->pxdata)->listADC_V[maxdirection + 1];
-        maxTime[2] = (double)(pxParameters->pxdata)->listT_V[maxdirection + 1] / configTICK_RATE_HZ;
+        maxTime[2] = (double)(pxParameters->pxdata)->listT_V[maxdirection + 1];
         // Ceder llave:
         xSemaphoreGive(xReadCount2);
         // Activar la escritura de datos:

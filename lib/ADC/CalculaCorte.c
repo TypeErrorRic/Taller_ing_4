@@ -37,9 +37,9 @@ static void vCorrCor(void *pvArguments)
             if ((actualValue * preValue) < 0)
             {
                 corrValue[0] = ((double)(3.3 / 4096) * (pxParameters->pxdata)->listADC_I[i - 1]) - 1.65;
-                corrTime[0] = (double)(pxParameters->pxdata)->listT_I[i - 1] / configTICK_RATE_HZ;
+                corrTime[0] = (double)(pxParameters->pxdata)->listT_I[i - 1];
                 corrValue[1] = ((double)(3.3 / 4096) * (pxParameters->pxdata)->listADC_I[i]) - 1.65;
-                corrTime[1] = (double)(pxParameters->pxdata)->listT_I[i] / configTICK_RATE_HZ;
+                corrTime[1] = (double)(pxParameters->pxdata)->listT_I[i];
                 break;
             }
         }
@@ -90,9 +90,9 @@ static void vVoltCor(void *pvArguments)
             if ((actualValue * preValue) < 0)
             {
                 voltValue[0] = ((double)(3.3 / 4096) * (pxParameters->pxdata)->listADC_V[i - 1]) - 1.65;
-                voltTime[0] = (double)(pxParameters->pxdata)->listT_V[i - 1] / configTICK_RATE_HZ;
+                voltTime[0] = (double)(pxParameters->pxdata)->listT_V[i - 1];
                 voltValue[1] = ((double)(3.3 / 4096) * (pxParameters->pxdata)->listADC_V[i]) - 1.65;
-                voltTime[1] = (double)(pxParameters->pxdata)->listT_V[i] / configTICK_RATE_HZ;
+                voltTime[1] = (double)(pxParameters->pxdata)->listT_V[i];
             }
         }
         // Dar oprotunidad a la tarea de max ejecutarse:

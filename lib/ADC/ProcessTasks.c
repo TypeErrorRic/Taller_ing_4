@@ -15,12 +15,13 @@ xADCParameters *pxADCParameters;
 
 #define DELAY_TIME (FRECUENCIA > 10 ? FACTOR_ESPERA : ((int)1000 / portTICK_PERIOD_MS))
 
-// Implementación de la tarea de procesamiento delos datos del ADC:
+// Implementación de la tarea de procesamiento de los datos del ADC:
 static void vCorrienteProcess(void *pvParameters)
 {
     // Información sobre la captura
     unsigned int adc_value = 0;
-    unsigned long time = 0;
+    unsigned long long time = 0;
+    TickType_t time_rtos = 0;
     // Inicializar Parametros:
     xADCParameters *pxParameters;
     pxParameters = (xADCParameters *)pvParameters;
@@ -32,6 +33,8 @@ static void vCorrienteProcess(void *pvParameters)
         // Tomar las LLaves para para leer / escribir en el arreglo:
         xSemaphoreTake(xMutexProcess1, portMAX_DELAY);
         xSemaphoreTake(xWriteProcessMutex1, (TickType_t)FACTOR_ESPERA);
+        // Capturar el instante en el que se empezo a realizar la captura:
+        xQueueReceive(time1_RTOS, &time_rtos, (TickType_t)0);
         // Copiar los datos a un arreglo para trasnferirlo a las tareas de Calculo.
         for (unsigned short i = 0; i < QUEUE_LENGTH; i++)
         {
@@ -39,7 +42,7 @@ static void vCorrienteProcess(void *pvParameters)
             {
                 (pxParameters->pxdata)->listADC_I[i] = adc_value;
                 if (xQueueReceive(time1_queue, &time, (TickType_t)0))
-                    (pxParameters->pxdata)->listT_I[i] = time;
+                    (pxParameters->pxdata)->listT_I[i] = (time_rtos * ((double)1 / configTICK_RATE_HZ) + ((double)time / 1000000));
                 else
                     break;
             }
@@ -70,8 +73,9 @@ static void vCorrienteProcess(void *pvParameters)
 static void vVoltajeProcess(void *pvParameters)
 {
     // Información sobre la captura
-    uint32_t adc_value = 0;
-    unsigned long time = 0;
+    unsigned int adc_value = 0;
+    unsigned long long time = 0;
+    TickType_t time_rtos = 0;
     // Inicializar Parametros:
     xADCParameters *pxParameters;
     pxParameters = (xADCParameters *)pvParameters;
@@ -83,6 +87,8 @@ static void vVoltajeProcess(void *pvParameters)
         // Tomar las LLave:
         xSemaphoreTake(xMutexProcess2, portMAX_DELAY);
         xSemaphoreTake(xWriteProcessMutex2, (TickType_t)FACTOR_ESPERA);
+        // Capturar el instante en el que se empezo a realizar la captura:
+        xQueueReceive(time2_RTOS, &time_rtos, (TickType_t)0);
         // Copiar los datos a un arreglo para trasnferirlo a las tareas de Calculo.
         for (unsigned short i = 0; i < QUEUE_LENGTH; i++)
         {
@@ -90,7 +96,7 @@ static void vVoltajeProcess(void *pvParameters)
             {
                 (pxParameters->pxdata)->listADC_V[i] = adc_value;
                 if (xQueueReceive(time2_queue, &time, (TickType_t)0))
-                    (pxParameters->pxdata)->listT_V[i] = time;
+                    (pxParameters->pxdata)->listT_V[i] = (time_rtos * ((double)1 / configTICK_RATE_HZ) + ((double)time / 1000000));
                 else
                     break;
             }
@@ -129,8 +135,8 @@ void setupTaskProcessADCs()
     {
         (pxADCParameters->pxdata)->listADC_I[i] = (uint32_t)0;
         (pxADCParameters->pxdata)->listADC_V[i] = (uint32_t)0;
-        (pxADCParameters->pxdata)->listT_I[i] = (uint32_t)0;
-        (pxADCParameters->pxdata)->listT_V[i] = (uint32_t)0;
+        (pxADCParameters->pxdata)->listT_I[i] = (double)0;
+        (pxADCParameters->pxdata)->listT_V[i] = (double)0;
     }
     // Inicializar variables:
     pxADCParameters->dVmax = 0;

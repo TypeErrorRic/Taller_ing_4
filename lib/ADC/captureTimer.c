@@ -30,13 +30,15 @@ static gptimer_config_t timer_config = {
 typedef struct Parameters_Timer
 {
     // Variables Requeridas:
-    int adc_value;
-    uint64_t tiempo;
-    short contador;
-    short i;
+    unsigned int adc_value;
+    unsigned long long tiempo;
+    TickType_t tiempoARTOS;
+    unsigned short contador;
+    unsigned short i;
     // Colas de trasmición de datos:
     QueueHandle_t *adc_queue;
     QueueHandle_t *time_queue;
+    QueueHandle_t *time_RTOS;
     // Semaforo de captura:
     SemaphoreHandle_t *xMutexProcess;
 } xTimersParameters;
@@ -63,6 +65,7 @@ gpio_config_t io_conf = {
 
 // Variable para almacenar el estado del LED (0: apagado, 1: encendido)
 static volatile int led_state = 0;
+static volatile unsigned bandera = 0x00;
 
 // ISR:
 static bool IRAM_ATTR timer_callbackI(gptimer_handle_t timer, const gptimer_alarm_event_data_t *edata, void *user_data)
@@ -79,15 +82,22 @@ static bool IRAM_ATTR timer_callbackI(gptimer_handle_t timer, const gptimer_alar
         pvParameters->contador = 0;
         pvParameters->i = 0;
         pvParameters->adc_value = 0;
+        pvParameters->tiempo = 0;
+        pvParameters->tiempoARTOS = xTaskGetTickCount();
+        // Capturar el instante en el que se empezara a capturar datos:
         if (xSemaphoreTakeFromISR(*(pvParameters->xMutexProcess), &high_task_awoken) == pdTRUE)
+        {
+            // Guardar instante en que el sistema entra a la interrupción:
+            xQueueSendToBackFromISR(*(pvParameters->time_RTOS), &pvParameters->tiempoARTOS, &high_task_awoken);
             opcI = MUESTREO;
+        }
         break;
     case MUESTREO:
         // Guardar:
         if (pvParameters->contador < 2)
         {
             pvParameters->adc_value += adc1_get_raw(ADC_CHANNEL1);
-            pvParameters->tiempo += ALARMA;
+            pvParameters->tiempo += edata->alarm_value;
             pvParameters->contador++;
         }
         else
@@ -98,6 +108,8 @@ static bool IRAM_ATTR timer_callbackI(gptimer_handle_t timer, const gptimer_alar
             // Guardar en la cola:
             xQueueSendToBackFromISR(*(pvParameters->adc_queue), &pvParameters->adc_value, &high_task_awoken);
             xQueueSendToBackFromISR(*(pvParameters->time_queue), &pvParameters->tiempo, &high_task_awoken);
+            // Incrementar tiempo:
+            pvParameters->tiempo += edata->alarm_value;
             // Determinar si activar la tarea de procesamiento:
             if (pvParameters->i <= QUEUE_LENGTH)
             {
@@ -130,19 +142,25 @@ static bool IRAM_ATTR timer_callbackV(gptimer_handle_t timer, const gptimer_alar
     // Declarar variables:
     xTimersParameters *pvParameters;
     pvParameters = (xTimersParameters *)user_data;
-    // Encender led:
-    led_state = !led_state;
-    gpio_set_level(LED_PIN, led_state);
     // Procesamiento:
     switch (opcV)
     {
     case TOMAR_LLAVE:
+        // Encender led:
+        led_state = !led_state;
+        gpio_set_level(LED_PIN, led_state);
         // Reinciar variables
         pvParameters->contador = 0;
         pvParameters->i = 0;
         pvParameters->adc_value = 0;
+        pvParameters->tiempo = 0;
+        pvParameters->tiempoARTOS = xTaskGetTickCount();
         if (xSemaphoreTakeFromISR(*(pvParameters->xMutexProcess), &high_task_awoken) == pdTRUE)
+        {
+            // Guardar instante en que el sistema entra a la interrupción:
+            xQueueSendToBackFromISR(*(pvParameters->time_RTOS), &pvParameters->tiempoARTOS, &high_task_awoken);
             opcV = MUESTREO;
+        }
         break;
     case MUESTREO:
         // Guardar:
@@ -151,7 +169,7 @@ static bool IRAM_ATTR timer_callbackV(gptimer_handle_t timer, const gptimer_alar
         {
             adc2_get_raw(ADC_CHANNEL2, ADC_WIDTH_BIT_12, &promedioV);
             pvParameters->adc_value += promedioV;
-            pvParameters->tiempo += ALARMA;
+            pvParameters->tiempo += edata->alarm_value;
             pvParameters->contador++;
         }
         else
@@ -163,6 +181,8 @@ static bool IRAM_ATTR timer_callbackV(gptimer_handle_t timer, const gptimer_alar
             // Guardar en la cola:
             xQueueSendToBackFromISR(*(pvParameters->adc_queue), &pvParameters->adc_value, &high_task_awoken);
             xQueueSendToBackFromISR(*(pvParameters->time_queue), &pvParameters->tiempo, &high_task_awoken);
+            // Incrementar time:
+            pvParameters->tiempo += edata->alarm_value;
             // Determinar si activar la tarea de procesamiento:
             if (pvParameters->i <= QUEUE_LENGTH)
             {
@@ -212,6 +232,8 @@ void init_timers()
     pxParamsI->adc_queue = &adc1_queue;
     pxParamsI->time_queue = &time1_queue;
     pxParamsI->xMutexProcess = &xMutexProcess1;
+    pxParamsI->time_RTOS = &time1_RTOS;
+    pxParamsI->tiempoARTOS = (TickType_t)0;
     // Timer:
     ESP_ERROR_CHECK(gptimer_new_timer(&timer_config, &gptimer1));
     ESP_LOGI(TAG, "Enable timer 1");
@@ -229,6 +251,8 @@ void init_timers()
     pxParamsV->adc_queue = &adc2_queue;
     pxParamsV->time_queue = &time2_queue;
     pxParamsV->xMutexProcess = &xMutexProcess2;
+    pxParamsV->time_RTOS = &time2_RTOS;
+    pxParamsV->tiempoARTOS = (TickType_t)0;
     // Timer:
     ESP_ERROR_CHECK(gptimer_new_timer(&timer_config, &gptimer2));
     ESP_LOGI(TAG, "Enable timer 2");
