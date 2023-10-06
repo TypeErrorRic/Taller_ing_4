@@ -1,3 +1,13 @@
+/**
+ * @file Proyecto de Taller de Ingeniería IV.
+ * @author Ricardo Pabón Serna.(ricardo.pabon@correounivalle.edu.co)
+ * @brief Este Archivo se encarga de declarar e inicializar todas los objectos de freeRTOS usados.
+ * @version 0.1
+ * @date 2023-10-06
+ *
+ * @copyright Copyright (c) 2023
+ */
+
 #include <ADC.h>
 
 // Declaración de las colas para la trasmición de mensajes de los ADCs:

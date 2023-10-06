@@ -1,8 +1,18 @@
+/**
+ * @file Proyecto de Taller de Ingeniería IV.
+ * @author Ricardo Pabón Serna.(ricardo.pabon@correounivalle.edu.co)
+ * @brief Este Archivo se encarga de Inicializar y Ejecutar el Muestreo de las Señales.
+ * @version 0.1
+ * @date 2023-10-06
+ *
+ * @copyright Copyright (c) 2023
+ */
+
 #include <ADC.h>
 
 static const char *TAG = "Timers";
 
-// Declaracione para el funcionamiento de las interupciones:
+// Declaraciones para el funcionamiento de las interupciones:
 static volatile unsigned char opcV = 0x00; // Para el voltaje.
 static volatile unsigned char opcI = 0x00; // Para el voltaje.
 
@@ -65,7 +75,6 @@ gpio_config_t io_conf = {
 
 // Variable para almacenar el estado del LED (0: apagado, 1: encendido)
 static volatile int led_state = 0;
-static volatile unsigned bandera = 0x00;
 
 // ISR:
 static bool IRAM_ATTR timer_callbackI(gptimer_handle_t timer, const gptimer_alarm_event_data_t *edata, void *user_data)

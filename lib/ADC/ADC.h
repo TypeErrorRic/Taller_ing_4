@@ -1,3 +1,13 @@
+/**
+ * @file Proyecto de Taller de Ingeniería IV.
+ * @author Ricardo Pabón Serna.(ricardo.pabon@correounivalle.edu.co)
+ * @brief Este es el Header del Funcionamiento del Procesamiento de las Señales.
+ * @version 0.1
+ * @date 2023-10-06
+ *
+ * @copyright Copyright (c) 2023
+ */
+
 #ifndef ADC_H
 #define ADC_H
 

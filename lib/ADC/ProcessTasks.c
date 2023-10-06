@@ -1,3 +1,13 @@
+/**
+ * @file Proyecto de Taller de Ingeniería IV.
+ * @author Ricardo Pabón Serna.(ricardo.pabon@correounivalle.edu.co)
+ * @brief Este archivo se encarga de procesar los resultados obtenidos del muestreo.
+ * @version 0.1
+ * @date 2023-10-06
+ *
+ * @copyright Copyright (c) 2023
+ */
+
 #include <ADC.h>
 
 static const char *TAG = "Capture Data";
