@@ -16,8 +16,8 @@ xADCParameters *pxADCParameters;
 // Implementación de la tarea de procesamiento delos datos del ADC:
 static void vCorrienteProcess(void *pvParameters)
 {
-    //Información sobre la captura
-    uint32_t adc_value = 0;
+    // Información sobre la captura
+    unsigned int adc_value = 0;
     unsigned long time = 0;
     // Inicializar Parametros:
     xADCParameters *pxParameters;
@@ -29,7 +29,7 @@ static void vCorrienteProcess(void *pvParameters)
     {
         // Tomar las LLaves para para leer / escribir en el arreglo:
         xSemaphoreTake(xMutexProcess1, portMAX_DELAY);
-        xSemaphoreTake(xWriteProcessMutex1, (TickType_t) FACTOR_ESPERA); // Esperar 10 ticks para volverlo a intentar
+        xSemaphoreTake(xWriteProcessMutex1, (TickType_t)FACTOR_ESPERA);
         // Copiar los datos a un arreglo para trasnferirlo a las tareas de Calculo.
         for (unsigned short i = 0; i < QUEUE_LENGTH; i++)
         {
@@ -37,22 +37,28 @@ static void vCorrienteProcess(void *pvParameters)
             {
                 (pxParameters->pxdata)->listADC_I[i] = adc_value;
                 if (xQueueReceive(time1_queue, &time, (TickType_t)0))
+                {
                     (pxParameters->pxdata)->listT_I[i] = time;
-                else break;
+                    printf(">I:%i\t", (int)adc_value);
+                    printf(">T:%i\n", (int)time);
+                }
+                else
+                    break;
             }
-            else break;
+            else
+                break;
         }
         // Procesar el estado de la tarea: xTaskCorrMaxI y xTaskCorrCorI:
-        //while (eTaskGetState(xTaskCorrMaxI) != eSuspended) vTaskDelay(FACTOR_ESPERA);
-        //while (eTaskGetState(xTaskCorrCorI) != eSuspended) vTaskDelay(FACTOR_ESPERA);
-        //Liberar llaves:
-        //xSemaphoreGive(xWriteProcessMutex1);    // Activar la lectura de datos:
-        xSemaphoreGive(xMutexProcess1);         // Activar de nuevo la captura de datos:
+        // while (eTaskGetState(xTaskCorrMaxI) != eSuspended) vTaskDelay(FACTOR_ESPERA);
+        // while (eTaskGetState(xTaskCorrCorI) != eSuspended) vTaskDelay(FACTOR_ESPERA);
+        // Liberar llaves:
+        xSemaphoreGive(xWriteProcessMutex1); // Activar la lectura de datos:
+        xSemaphoreGive(xMutexProcess1);      // Activar de nuevo la captura de datos:
         // Finalizar procesamiento de datos:
         ESP_LOGI(TAG, "Captura I Completa");
-        //Activar tareas:
-        //vTaskResume(xTaskCorrMaxI);
-        //vTaskResume(xTaskCorrCorI);
+        // Activar tareas:
+        // vTaskResume(xTaskCorrMaxI);
+        // vTaskResume(xTaskCorrCorI);
         vTaskDelay(FACTOR_ESPERA);
     }
     vTaskDelete(NULL);
@@ -61,7 +67,7 @@ static void vCorrienteProcess(void *pvParameters)
 // Creación de la tarea para el ADC 2:
 static void vVoltajeProcess(void *pvParameters)
 {
-    //Información sobre la captura
+    // Información sobre la captura
     uint32_t adc_value = 0;
     unsigned long time = 0;
     // Inicializar Parametros:
@@ -74,7 +80,7 @@ static void vVoltajeProcess(void *pvParameters)
     {
         // Tomar las LLave:
         xSemaphoreTake(xMutexProcess2, portMAX_DELAY);
-        xSemaphoreTake(xWriteProcessMutex2, (TickType_t) FACTOR_ESPERA);
+        xSemaphoreTake(xWriteProcessMutex2, (TickType_t)FACTOR_ESPERA);
         // Copiar los datos a un arreglo para trasnferirlo a las tareas de Calculo.
         for (unsigned short i = 0; i < QUEUE_LENGTH; i++)
         {
@@ -82,22 +88,28 @@ static void vVoltajeProcess(void *pvParameters)
             {
                 (pxParameters->pxdata)->listADC_V[i] = adc_value;
                 if (xQueueReceive(time2_queue, &time, (TickType_t)0))
+                {
                     (pxParameters->pxdata)->listT_V[i] = time;
-                else break;
+                    printf(">V:%i\t", (int)adc_value);
+                    printf(">T:%i\n", (int)time);
+                }
+                else
+                    break;
             }
-            else break;
+            else
+                break;
         }
         // Procesar el estado de la tarea: xTaskCorrMaxI
-        while (eTaskGetState(xTaskVoltMaxV) != eSuspended) vTaskDelay(FACTOR_ESPERA);
-        while (eTaskGetState(xTaskVoltCorV) != eSuspended) vTaskDelay(FACTOR_ESPERA);
-        //Liberar llaves:
+        // while (eTaskGetState(xTaskVoltMaxV) != eSuspended) vTaskDelay(FACTOR_ESPERA);
+        // while (eTaskGetState(xTaskVoltCorV) != eSuspended) vTaskDelay(FACTOR_ESPERA);
+        // Liberar llaves:
         xSemaphoreGive(xMutexProcess2);      // Activar de nuevo la captura de datos:
         xSemaphoreGive(xWriteProcessMutex2); // Activar la lectura de datos:
         // Finalizar procesamiento de datos:
         ESP_LOGI(TAG, "Captura v Completa");
         // Activar Tareas:
-        //vTaskResume(xTaskVoltMaxV);
-        //vTaskResume(xTaskVoltCorV);
+        // vTaskResume(xTaskVoltMaxV);
+        // vTaskResume(xTaskVoltCorV);
         vTaskDelay(FACTOR_ESPERA);
     }
     vTaskDelete(NULL);

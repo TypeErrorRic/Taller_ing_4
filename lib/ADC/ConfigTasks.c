@@ -25,9 +25,9 @@ void initTask()
     xMutexProcess1 = xSemaphoreCreateMutex();
     xMutexProcess2 = xSemaphoreCreateMutex();
     // Inicializar colas de trasmición:
-    adc1_queue = xQueueCreate(QUEUE_LENGTH, sizeof(uint16_t));
+    adc1_queue = xQueueCreate(QUEUE_LENGTH, sizeof(int));
     time1_queue = xQueueCreate(QUEUE_LENGTH, sizeof(uint64_t));
-    adc2_queue = xQueueCreate(QUEUE_LENGTH, sizeof(uint16_t));
+    adc2_queue = xQueueCreate(QUEUE_LENGTH, sizeof(int));
     time2_queue = xQueueCreate(QUEUE_LENGTH, sizeof(uint64_t));
     // Crea un mutex para controlar la escritura de de datos en el arreglo:
     xWriteProcessMutex1 = xSemaphoreCreateMutex();

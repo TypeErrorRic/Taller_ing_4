@@ -22,14 +22,15 @@ void app_main(void)
         printf(TAG, "Error!!!");
         break;
     }
-    //Iniciar timers:
-    ESP_ERROR_CHECK(gptimer_start(gptimer1));
+    // Iniciar timers:
+    //ESP_ERROR_CHECK(gptimer_start(gptimer1));
     ESP_ERROR_CHECK(gptimer_start(gptimer2));
-    ESP_LOGW(TAG, "Timers iniciados.");
-    //Iniciar Tareas de procesamiento:
-    vTaskResume(xTaskCorrProcessI);
+    ESP_LOGI(TAG, "Timers iniciados.");
+    vTaskDelay(FACTOR_ESPERA); // Tiempo para que los timers tomen la llave.
+    // Iniciar Tareas de procesamiento:
+    //vTaskResume(xTaskCorrProcessI);
     vTaskResume(xTaskVoltProcessV);
-    ESP_LOGW(TAG, "Tareas de procesamiento listas.");
+    ESP_LOGI(TAG, "Tareas de procesamiento listas.");
     // Finalizar.
-    ESP_LOGW(TAG, "Inicializacion correcta.");
+    ESP_LOGI(TAG, "Inicializacion correcta.");
 }

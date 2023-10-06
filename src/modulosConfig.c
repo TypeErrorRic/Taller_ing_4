@@ -1,8 +1,9 @@
 #include "..\..\include\modulosConfig.h"
 
 // Lista de tareas a ejecutar:
-const taskDefinition *listTask[] = {/*&taskADCCaptureI, &taskADCCaptureV, &taskADCProcessI, &taskADCProcessV,
-                                    &taskVoltMaxV, &taskCorrMaxI, &taskCorrCorI, &taskVoltCorV*/};
+const taskDefinition *listTask[] = {&taskADCProcessI, &taskADCProcessV /*&taskVoltMaxV, &taskCorrMaxI,
+                                    &taskCorrCorI, &taskVoltCorV*/
+};
 
 esp_err_t createTask()
 {
@@ -33,6 +34,6 @@ esp_err_t initDrivers()
     // Identificador de inicialización de elementos:
     static const char *TAG = "Init";
     initElementsADCs();
-    ESP_LOGW(TAG, "ADC Inicializado.");
+    ESP_LOGI(TAG, "ADC Inicializado.");
     return ESP_OK;
 }
