@@ -9,8 +9,7 @@ static volatile unsigned char opcI = 0x00; // Para el voltaje.
 // Estados:
 #define TOMAR_LLAVE 0x00
 #define MUESTREO 0x01
-#define PROCESAMIENTO 0x02
-#define PAUSA 0x03
+#define CEDER 0x02
 
 // Configuración:
 #define RESOLUTION 1000000 // 1MHz, 1 tick = 1us
@@ -62,7 +61,8 @@ gpio_config_t io_conf = {
     .pull_up_en = GPIO_PULLUP_DISABLE,
 };
 
-static volatile int led_state = 0; // Variable para almacenar el estado del LED (0: apagado, 1: encendido)
+// Variable para almacenar el estado del LED (0: apagado, 1: encendido)
+static volatile int led_state = 0;
 
 // ISR:
 static bool IRAM_ATTR timer_callbackI(gptimer_handle_t timer, const gptimer_alarm_event_data_t *edata, void *user_data)
@@ -71,16 +71,14 @@ static bool IRAM_ATTR timer_callbackI(gptimer_handle_t timer, const gptimer_alar
     // Declarar variables:
     xTimersParameters *pvParameters;
     pvParameters = (xTimersParameters *)user_data;
-    //Encender led:
-    led_state = !led_state;
-    gpio_set_level(LED_PIN, led_state);
-    //Procesamiento:
+    // Procesamiento:
     switch (opcI)
     {
     case TOMAR_LLAVE:
         // Reinciar variables
         pvParameters->contador = 0;
         pvParameters->i = 0;
+        pvParameters->adc_value = 0;
         if (xSemaphoreTakeFromISR(*(pvParameters->xMutexProcess), &high_task_awoken) == pdTRUE)
             opcI = MUESTREO;
         break;
@@ -88,14 +86,14 @@ static bool IRAM_ATTR timer_callbackI(gptimer_handle_t timer, const gptimer_alar
         // Guardar:
         if (pvParameters->contador < 2)
         {
-            pvParameters->adc_value = adc1_get_raw(ADC_CHANNEL1);
+            pvParameters->adc_value += adc1_get_raw(ADC_CHANNEL1);
             pvParameters->tiempo += ALARMA;
             pvParameters->contador++;
         }
         else
         {
             // Guardar en la el arreglo:
-            pvParameters->adc_value = adc1_get_raw(ADC_CHANNEL1);
+            pvParameters->adc_value += adc1_get_raw(ADC_CHANNEL1);
             pvParameters->adc_value = (int)pvParameters->adc_value / 3;
             // Guardar en la cola:
             xQueueSendToBackFromISR(*(pvParameters->adc_queue), &pvParameters->adc_value, &high_task_awoken);
@@ -107,17 +105,16 @@ static bool IRAM_ATTR timer_callbackI(gptimer_handle_t timer, const gptimer_alar
                 pvParameters->i++;
             }
             else
-                opcI = PROCESAMIENTO;
+                opcI = CEDER; // Default:
         }
         break;
-    case PROCESAMIENTO:
+    default:
         // Liberar el semáforo desde una ISR
         if (xSemaphoreGiveFromISR(*(pvParameters->xMutexProcess), &high_task_awoken) == pdTRUE)
-            opcI = PAUSA; // Pasar a Default.
-        break;
-    default:
-        opcI = TOMAR_LLAVE;
-        gptimer_stop(timer); // Detener el timer.
+        {
+            opcI = TOMAR_LLAVE;
+            gptimer_stop(timer); // Detener el timer.
+        }
         break;
     }
     return (high_task_awoken == pdTRUE);
@@ -133,31 +130,35 @@ static bool IRAM_ATTR timer_callbackV(gptimer_handle_t timer, const gptimer_alar
     // Declarar variables:
     xTimersParameters *pvParameters;
     pvParameters = (xTimersParameters *)user_data;
-    //Encender led:
+    // Encender led:
     led_state = !led_state;
     gpio_set_level(LED_PIN, led_state);
-    //Procesamiento:
-    switch (opcI)
+    // Procesamiento:
+    switch (opcV)
     {
     case TOMAR_LLAVE:
         // Reinciar variables
         pvParameters->contador = 0;
         pvParameters->i = 0;
+        pvParameters->adc_value = 0;
         if (xSemaphoreTakeFromISR(*(pvParameters->xMutexProcess), &high_task_awoken) == pdTRUE)
-            opcI = MUESTREO;
+            opcV = MUESTREO;
         break;
     case MUESTREO:
         // Guardar:
+        int promedioV = 0;
         if (pvParameters->contador < 2)
         {
-            pvParameters->adc_value = adc1_get_raw(ADC_CHANNEL1);
+            adc2_get_raw(ADC_CHANNEL2, ADC_WIDTH_BIT_12, &promedioV);
+            pvParameters->adc_value += promedioV;
             pvParameters->tiempo += ALARMA;
             pvParameters->contador++;
         }
         else
         {
             // Guardar en la el arreglo:
-            pvParameters->adc_value = adc1_get_raw(ADC_CHANNEL1);
+            adc2_get_raw(ADC_CHANNEL2, ADC_WIDTH_BIT_12, &promedioV);
+            pvParameters->adc_value += promedioV;
             pvParameters->adc_value = (int)pvParameters->adc_value / 3;
             // Guardar en la cola:
             xQueueSendToBackFromISR(*(pvParameters->adc_queue), &pvParameters->adc_value, &high_task_awoken);
@@ -169,17 +170,16 @@ static bool IRAM_ATTR timer_callbackV(gptimer_handle_t timer, const gptimer_alar
                 pvParameters->i++;
             }
             else
-                opcI = PROCESAMIENTO;
+                opcV = CEDER; // Default:
         }
         break;
-    case PROCESAMIENTO:
+    default:
         // Liberar el semáforo desde una ISR
         if (xSemaphoreGiveFromISR(*(pvParameters->xMutexProcess), &high_task_awoken) == pdTRUE)
-            opcI = PAUSA; // Pasar a Default.
-        break;
-    default:
-        opcI = TOMAR_LLAVE;
-        gptimer_stop(timer); // Detener el timer.
+        {
+            opcV = TOMAR_LLAVE;
+            gptimer_stop(timer); // Detener el timer.
+        }
         break;
     }
     return (high_task_awoken == pdTRUE);
@@ -191,6 +191,7 @@ static gptimer_event_callbacks_t cbs2 = {
 void init_timers()
 {
     ESP_LOGW(TAG, "Periodo de Muestreo: %i us", ALARMA);
+    ESP_LOGW(TAG, "Longitud de Muestra: %i", QUEUE_LENGTH);
     // Inicializar el ADC para el core 0 (ADC1):
     adc1_config_width(ADC_WIDTH_BIT_12);
     adc1_config_channel_atten(ADC_CHANNEL1, ADC_ATTEN_DB_0);
@@ -233,6 +234,6 @@ void init_timers()
     ESP_LOGI(TAG, "Enable timer 2");
     ESP_ERROR_CHECK(gptimer_register_event_callbacks(gptimer2, &cbs2, pxParamsV));
     ESP_ERROR_CHECK(gptimer_enable(gptimer2));
-    ESP_LOGI(TAG, "Start timer, stop it at alarm event 2");
+    ESP_LOGI(TAG, "Start timer 2, stop it at alarm event");
     ESP_ERROR_CHECK(gptimer_set_alarm_action(gptimer2, &alarm_config1));
 }

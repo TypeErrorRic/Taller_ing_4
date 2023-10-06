@@ -16,7 +16,7 @@
 #define ADC_CHANNEL2 ADC2_CHANNEL_0 // Canal de ADC2
 
 // Definir el tamaño de la cola:
-#define QUEUE_LENGTH 10
+#define QUEUE_LENGTH (FRECUENCIA > 300 ? (((unsigned int) FRECUENCIA / 60)*2) : 10)
 
 // Pin GPIO para el LED incorporado en el ESP32 DevKit
 #define LED_PIN GPIO_NUM_2 

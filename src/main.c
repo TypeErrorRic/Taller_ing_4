@@ -23,12 +23,13 @@ void app_main(void)
         break;
     }
     // Iniciar timers:
-    //ESP_ERROR_CHECK(gptimer_start(gptimer1));
+    ESP_ERROR_CHECK(gptimer_start(gptimer1));
     ESP_ERROR_CHECK(gptimer_start(gptimer2));
     ESP_LOGI(TAG, "Timers iniciados.");
-    vTaskDelay(FACTOR_ESPERA); // Tiempo para que los timers tomen la llave.
+    // Tiempo para que los timers tomen la llave.
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
     // Iniciar Tareas de procesamiento:
-    //vTaskResume(xTaskCorrProcessI);
+    vTaskResume(xTaskCorrProcessI);
     vTaskResume(xTaskVoltProcessV);
     ESP_LOGI(TAG, "Tareas de procesamiento listas.");
     // Finalizar.
