@@ -8,18 +8,10 @@
 // Main:
 static const char *TAG = "Main";
 
-//Sincronizador de tareas:
-SemaphoreHandle_t syncSemaphore;
-
 void app_main(void)
 {
-    // Inicializar el semáforo
-    syncSemaphore = xSemaphoreCreateBinary();
-    xSemaphoreGive(syncSemaphore); // Inicialmente, el semáforo está en estado "libre"
-
     // Inicializar Perifericos del sistema:
     initDrivers();
-
     // Arrancar las tareas.
     switch (createTask())
     {
@@ -30,21 +22,14 @@ void app_main(void)
         printf(TAG, "Error!!!");
         break;
     }
+    //Iniciar timers:
+    ESP_ERROR_CHECK(gptimer_start(gptimer1));
+    ESP_ERROR_CHECK(gptimer_start(gptimer2));
+    ESP_LOGW(TAG, "Timers iniciados.");
+    //Iniciar Tareas de procesamiento:
+    vTaskResume(xTaskCorrProcessI);
+    vTaskResume(xTaskVoltProcessV);
+    ESP_LOGW(TAG, "Tareas de procesamiento listas.");
     // Finalizar.
     ESP_LOGW(TAG, "Inicializacion correcta.");
-
-    init_timers();
-    
-    /*
-    // Iniciar tareas:
-    // Deshabilitar la programación preemptiva antes de reanudar tareas
-    vTaskSuspendAll();
-
-    // Reanudar tareas
-    vTaskResume(xTaskCorrCaptureI);
-    vTaskResume(xTaskVoltCaptureV);
-
-    // Habilitar nuevamente la programación preemptiva
-    xTaskResumeAll();
-    */
 }

@@ -43,18 +43,17 @@ static void vCorrienteProcess(void *pvParameters)
             else break;
         }
         // Procesar el estado de la tarea: xTaskCorrMaxI y xTaskCorrCorI:
-        while (eTaskGetState(xTaskCorrMaxI) != eSuspended) vTaskDelay(FACTOR_ESPERA);
-        while (eTaskGetState(xTaskCorrCorI) != eSuspended) vTaskDelay(FACTOR_ESPERA);
+        //while (eTaskGetState(xTaskCorrMaxI) != eSuspended) vTaskDelay(FACTOR_ESPERA);
+        //while (eTaskGetState(xTaskCorrCorI) != eSuspended) vTaskDelay(FACTOR_ESPERA);
         //Liberar llaves:
-        xSemaphoreGive(xWriteProcessMutex1);    // Activar la lectura de datos:
+        //xSemaphoreGive(xWriteProcessMutex1);    // Activar la lectura de datos:
         xSemaphoreGive(xMutexProcess1);         // Activar de nuevo la captura de datos:
         // Finalizar procesamiento de datos:
         ESP_LOGI(TAG, "Captura I Completa");
         //Activar tareas:
-        vTaskResume(xTaskCorrMaxI);
-        vTaskResume(xTaskCorrCorI);
-        // Suspender Tarea:
-        vTaskSuspend(NULL);
+        //vTaskResume(xTaskCorrMaxI);
+        //vTaskResume(xTaskCorrCorI);
+        vTaskDelay(FACTOR_ESPERA);
     }
     vTaskDelete(NULL);
 }
@@ -97,9 +96,9 @@ static void vVoltajeProcess(void *pvParameters)
         // Finalizar procesamiento de datos:
         ESP_LOGI(TAG, "Captura v Completa");
         // Activar Tareas:
-        vTaskResume(xTaskVoltMaxV);
-        vTaskResume(xTaskVoltCorV);
-        vTaskSuspend(NULL);
+        //vTaskResume(xTaskVoltMaxV);
+        //vTaskResume(xTaskVoltCorV);
+        vTaskDelay(FACTOR_ESPERA);
     }
     vTaskDelete(NULL);
 };

@@ -6,7 +6,7 @@ QueueHandle_t adc2_queue;  // Cola con los valores del ADC de Voltaje.
 QueueHandle_t time1_queue; // Cola con los valores del instante de Captura de la Corriente.
 QueueHandle_t time2_queue; // Cola con los volores del instante de Captura del Voltaje.
 
-//Semaforos de control del ADCs:
+// Semaforos de control del ADCs:
 SemaphoreHandle_t xMutexProcess1; // Declaración del semáforo del core 0.
 SemaphoreHandle_t xMutexProcess2; // Declaración del semáforo del core 1.
 
@@ -40,12 +40,12 @@ void initTask()
 // Función con las llamadas requeridas para realizar la configuración de los ADCs.
 void initElementsADCs()
 {
-    //Configuración de estrucutras de trasmición de datos:
+    // Configuración de estrucutras de trasmición de datos:
     initTask();
-    //Configuración de tareas:
+    // Configuración de tareas:
     setupTaskProcessADCs();
     setupTaskCalculeProcess();
     setupTaskCalculeCorProcess();
-    //Configuración de timers:
+    // Configuración de timers:
     init_timers();
 }

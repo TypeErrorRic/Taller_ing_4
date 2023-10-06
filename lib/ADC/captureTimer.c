@@ -48,7 +48,7 @@ xTimersParameters *pxParamsV;
 
 // Configurar alarma:
 static gptimer_alarm_config_t alarm_config1 = {
-    .alarm_count = ALARMA, 
+    .alarm_count = ALARMA,
 };
 
 // ISR:
@@ -99,6 +99,7 @@ static bool IRAM_ATTR timer_callbackI(gptimer_handle_t timer, const gptimer_alar
         opcI = PAUSA;
         break;
     default:
+        opcI = TOMAR_LLAVE;
         gptimer_stop(timer); // Detener el timer.
         break;
     }
@@ -159,6 +160,7 @@ static bool IRAM_ATTR timer_callbackV(gptimer_handle_t timer, const gptimer_alar
         opcV = PAUSA;
         break;
     default:
+        opcV = TOMAR_LLAVE;
         gptimer_stop(timer); // Detener el timer.
         break;
     }
@@ -195,7 +197,7 @@ void init_timers()
     ESP_ERROR_CHECK(gptimer_enable(gptimer1));
     ESP_LOGI(TAG, "Start timer, stop it at alarm event 1");
     ESP_ERROR_CHECK(gptimer_set_alarm_action(gptimer1, &alarm_config1));
-    ESP_ERROR_CHECK(gptimer_start(gptimer1));
+    ESP_ERROR_CHECK(gptimer_stop(gptimer1));
 
     // Inicializar parametros:
     pxParamsV = (xTimersParameters *)pvPortMalloc(sizeof(xTimersParameters));
@@ -216,5 +218,5 @@ void init_timers()
     ESP_ERROR_CHECK(gptimer_enable(gptimer2));
     ESP_LOGI(TAG, "Start timer, stop it at alarm event 2");
     ESP_ERROR_CHECK(gptimer_set_alarm_action(gptimer2, &alarm_config1));
-    ESP_ERROR_CHECK(gptimer_start(gptimer2));
+    ESP_ERROR_CHECK(gptimer_stop(gptimer2));
 }

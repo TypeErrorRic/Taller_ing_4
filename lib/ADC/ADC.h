@@ -75,13 +75,13 @@ extern xADCParameters *pxADCParameters; // Estructua creada.
 // Inicialización de estructura de datos:
 void initTask();
 
-// Inicialización de captura de datos por Interrupciones:
+//Inicialización de captura de datos por Interrupciones:
 void init_timers();
 //Manejadores de las interrupciones:
 extern gptimer_handle_t gptimer1;
 extern gptimer_handle_t gptimer2;
 
-// Inicalización de tareas de Procesamiento de datos:
+//Inicalización de tareas de Procesamiento de datos:
 void setupTaskProcessADCs();
 // Manejadores de las tareas:
 extern TaskHandle_t xTaskCorrProcessI;
