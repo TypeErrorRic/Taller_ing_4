@@ -113,7 +113,7 @@ static bool IRAM_ATTR timer_callbackI(gptimer_handle_t timer, const gptimer_alar
         {
             // Guardar en la el arreglo:
             pvParameters->adc_value += adc1_get_raw(ADC_CHANNEL1);
-            pvParameters->adc_value = (int)pvParameters->adc_value / 3;
+            pvParameters->adc_value = (unsigned int)pvParameters->adc_value / 3;
             // Guardar en la cola:
             xQueueSendToBackFromISR(*(pvParameters->adc_queue), &pvParameters->adc_value, &high_task_awoken);
             xQueueSendToBackFromISR(*(pvParameters->time_queue), &pvParameters->tiempo, &high_task_awoken);
@@ -123,6 +123,7 @@ static bool IRAM_ATTR timer_callbackI(gptimer_handle_t timer, const gptimer_alar
             if (pvParameters->i <= QUEUE_LENGTH)
             {
                 pvParameters->contador = 0;
+                pvParameters->adc_value = 0;
                 pvParameters->i++;
             }
             else
@@ -186,7 +187,7 @@ static bool IRAM_ATTR timer_callbackV(gptimer_handle_t timer, const gptimer_alar
             // Guardar en la el arreglo:
             adc2_get_raw(ADC_CHANNEL2, ADC_WIDTH_BIT_12, &promedioV);
             pvParameters->adc_value += promedioV;
-            pvParameters->adc_value = (int)pvParameters->adc_value / 3;
+            pvParameters->adc_value = (unsigned int)pvParameters->adc_value / 3;
             // Guardar en la cola:
             xQueueSendToBackFromISR(*(pvParameters->adc_queue), &pvParameters->adc_value, &high_task_awoken);
             xQueueSendToBackFromISR(*(pvParameters->time_queue), &pvParameters->tiempo, &high_task_awoken);
@@ -196,6 +197,7 @@ static bool IRAM_ATTR timer_callbackV(gptimer_handle_t timer, const gptimer_alar
             if (pvParameters->i <= QUEUE_LENGTH)
             {
                 pvParameters->contador = 0;
+                pvParameters->adc_value = 0;
                 pvParameters->i++;
             }
             else
@@ -223,9 +225,9 @@ void init_timers()
     ESP_LOGW(TAG, "Longitud de Muestra: %i", QUEUE_LENGTH);
     // Inicializar el ADC para el core 0 (ADC1):
     adc1_config_width(ADC_WIDTH_BIT_12);
-    adc1_config_channel_atten(ADC_CHANNEL1, ADC_ATTEN_DB_0);
+    adc1_config_channel_atten(ADC_CHANNEL1, ADC_ATTEN_DB_11);
     // Inicializar el ADC para el core 1 (ADC2):
-    adc2_config_channel_atten(ADC_CHANNEL2, ADC_ATTEN_DB_0);
+    adc2_config_channel_atten(ADC_CHANNEL2, ADC_ATTEN_DB_11);
     // Inicializar controladores de timers:
     gptimer2 = NULL;
     gptimer1 = NULL;

@@ -90,9 +90,9 @@ static void vVoltCor(void *pvArguments)
             if ((actualValue * preValue) < 0)
             {
                 voltValue[0] = ((double)(3.3 / 4096) * (pxParameters->pxdata)->listADC_V[i - 1]) - 1.65;
-                voltTime[0] = (double)(pxParameters->pxdata)->listT_V[i - 1];
+                voltTime[0] = (pxParameters->pxdata)->listT_V[i - 1];
                 voltValue[1] = ((double)(3.3 / 4096) * (pxParameters->pxdata)->listADC_V[i]) - 1.65;
-                voltTime[1] = (double)(pxParameters->pxdata)->listT_V[i];
+                voltTime[1] = (pxParameters->pxdata)->listT_V[i];
             }
         }
         // Dar oprotunidad a la tarea de max ejecutarse:
