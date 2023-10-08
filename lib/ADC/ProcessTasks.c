@@ -31,7 +31,7 @@ static void vCorrienteProcess(void *pvParameters)
     // Información sobre la captura
     unsigned int adc_value = 0;
     unsigned long long time = 0;
-    TickType_t time_rtos = 0;
+    unsigned long timeSeconds = 0;
     // Inicializar Parametros:
     xADCParameters *pxParameters;
     pxParameters = (xADCParameters *)pvParameters;
@@ -44,15 +44,15 @@ static void vCorrienteProcess(void *pvParameters)
         xSemaphoreTake(xMutexProcess1, portMAX_DELAY);
         xSemaphoreTake(xWriteProcessMutex1, (TickType_t)FACTOR_ESPERA);
         // Capturar el instante en el que se empezo a realizar la captura:
-        xQueueReceive(time1_RTOS, &time_rtos, (TickType_t)0);
+        xQueueReceive(time1_RTOS, &timeSeconds, (TickType_t)0);
         // Copiar los datos a un arreglo para trasnferirlo a las tareas de Calculo.
         for (unsigned short i = 0; i < QUEUE_LENGTH; i++)
         {
             if (xQueueReceive(adc1_queue, &adc_value, (TickType_t)0))
             {
-                (pxParameters->pxdata)->listADC_I[i] = adc_value;
+                (pxParameters->pxdata)->listADC_I[i] = (double)(3.3 / 4096) * adc_value - 1.65;
                 if (xQueueReceive(time1_queue, &time, (TickType_t)0))
-                    (pxParameters->pxdata)->listT_I[i] = (time_rtos * ((double)1 / configTICK_RATE_HZ) + ((double)time / 1000000));
+                    (pxParameters->pxdata)->listT_I[i] = (timeSeconds + ((double)time / 1000000));
                 else
                     break;
             }
@@ -85,7 +85,7 @@ static void vVoltajeProcess(void *pvParameters)
     // Información sobre la captura
     unsigned int adc_value = 0;
     unsigned long long time = 0;
-    TickType_t time_rtos = 0;
+    unsigned long timeSeconds = 0;
     // Inicializar Parametros:
     xADCParameters *pxParameters;
     pxParameters = (xADCParameters *)pvParameters;
@@ -98,15 +98,15 @@ static void vVoltajeProcess(void *pvParameters)
         xSemaphoreTake(xMutexProcess2, portMAX_DELAY);
         xSemaphoreTake(xWriteProcessMutex2, (TickType_t)FACTOR_ESPERA);
         // Capturar el instante en el que se empezo a realizar la captura:
-        xQueueReceive(time2_RTOS, &time_rtos, (TickType_t)0);
+        xQueueReceive(time2_RTOS, &timeSeconds, (TickType_t)0);
         // Copiar los datos a un arreglo para trasnferirlo a las tareas de Calculo.
         for (unsigned short i = 0; i < QUEUE_LENGTH; i++)
         {
             if (xQueueReceive(adc2_queue, &adc_value, (TickType_t)0))
             {
-                (pxParameters->pxdata)->listADC_V[i] = adc_value;
+                (pxParameters->pxdata)->listADC_V[i] = (double)(3.3 / 4096) * adc_value - 1.65;
                 if (xQueueReceive(time2_queue, &time, (TickType_t)0))
-                    (pxParameters->pxdata)->listT_V[i] = (time_rtos * ((double)1 / configTICK_RATE_HZ) + ((double)time / 1000000));
+                    (pxParameters->pxdata)->listT_V[i] = (timeSeconds + ((double)time / 1000000));
                 else
                     break;
             }

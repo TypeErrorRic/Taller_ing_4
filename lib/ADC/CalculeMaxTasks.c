@@ -18,14 +18,16 @@ static void vCorrMaxProcess(void *pvArguments)
     // Inicializar Parametros:
     xADCParameters *pxParameters;
     pxParameters = (xADCParameters *)pvArguments;
+    // Suspender sistema
     vTaskSuspend(NULL);
     // Bucle principal
     for (;;)
     {
-        // Sección critica de lectura de datos:
-        if (uxSemaphoreGetCount(xReadCount1) == 2)
-            xSemaphoreTake(xWriteProcessMutex1, (TickType_t)5);
+        // Tomar Semaforo:
         xSemaphoreTake(xReadCount1, (TickType_t)FACTOR_ESPERA);
+        // Sección critica de lectura de datos:
+        if (uxSemaphoreGetCount(xReadCount1) == 1)
+            xSemaphoreTake(xWriteProcessMutex1, (TickType_t)FACTOR_ESPERA);
         // Leer los datos del arreglo para obtener los valores maximos:
         for (unsigned short i = 1; i < (QUEUE_LENGTH - 1); i++)
         {
@@ -33,22 +35,21 @@ static void vCorrMaxProcess(void *pvArguments)
             maxdirection = (pxParameters->pxdata)->listADC_I[maxdirection] < ((pxParameters->pxdata)->listADC_I[i]) ? i : maxdirection;
         }
         // Valor anterior al valor maximo:
-        maxValue[0] = (double)(3.3 / 4096) * (pxParameters->pxdata)->listADC_I[maxdirection - 1] - 1.65;
+        maxValue[0] = (pxParameters->pxdata)->listADC_I[maxdirection - 1];
         maxTime[0] = (pxParameters->pxdata)->listT_I[maxdirection - 1];
         // Valor maximo:
-        maxValue[1] = (double)(3.3 / 4096) * (pxParameters->pxdata)->listADC_I[maxdirection] - 1.65;
+        maxValue[1] = (pxParameters->pxdata)->listADC_I[maxdirection];
         maxTime[1] = (pxParameters->pxdata)->listT_I[maxdirection];
         // Valor después del valor maximo.
-        maxValue[2] = (double)(3.3 / 4096) * (pxParameters->pxdata)->listADC_I[maxdirection + 1] - 1.65;
+        maxValue[2] = (pxParameters->pxdata)->listADC_I[maxdirection + 1];
         maxTime[2] = (pxParameters->pxdata)->listT_I[maxdirection + 1];
+        // Decidir si cerder o activar la escritura de datos:
+        if (uxSemaphoreGetCount(xReadCount1) == 1)
+            xSemaphoreGive(xWriteProcessMutex1);
         // Ceder llave:
         xSemaphoreGive(xReadCount1);
-        // Activar la escritura de datos:
-        if (uxSemaphoreGetCount(xReadCount1) == 2)
-            xSemaphoreGive(xWriteProcessMutex1);
-
         // Dar oprotunidad a la tarea de ángulo ejecutarse:
-        vTaskDelay(3); // Minimo de 3 para que no se dañe el sistema
+        vTaskDelay(FACTOR_ESPERA);
 
         // Realizar Calculos:
 
@@ -72,36 +73,37 @@ static void vVoltMaxProcess(void *pvArguments)
     // Inicializar Parametros:
     xADCParameters *pxParameters;
     pxParameters = (xADCParameters *)pvArguments;
+    // Suspender sistema
     vTaskSuspend(NULL);
     // Bucle principal
     for (;;)
     {
-        // Sección critica de lectura de datos:
-        if (uxSemaphoreGetCount(xReadCount2) == 2)
-            xSemaphoreTake(xWriteProcessMutex2, (TickType_t)5);
+        // Tomar Semaforo:
         xSemaphoreTake(xReadCount2, (TickType_t)FACTOR_ESPERA);
+        // Sección critica de lectura de datos:
+        if (uxSemaphoreGetCount(xReadCount2) == 1)
+            xSemaphoreTake(xWriteProcessMutex2, (TickType_t)FACTOR_ESPERA);
         for (unsigned short i = 1; i < (QUEUE_LENGTH - 1); i++)
         {
             // Capturar el dato Maximo:
             maxdirection = (pxParameters->pxdata)->listADC_V[maxdirection] < ((pxParameters->pxdata)->listADC_V[i]) ? i : maxdirection;
         }
         // Valor anterior al valor maximo:
-        maxValue[0] = (double)(3.3 / 4096) * (pxParameters->pxdata)->listADC_V[maxdirection - 1] - 1.65;
+        maxValue[0] = (pxParameters->pxdata)->listADC_V[maxdirection - 1];
         maxTime[0] = (pxParameters->pxdata)->listT_V[maxdirection - 1];
         // Valor maximo:
-        maxValue[1] = (double)(3.3 / 4096) * (pxParameters->pxdata)->listADC_V[maxdirection] - 1.65;
+        maxValue[1] = (pxParameters->pxdata)->listADC_V[maxdirection];
         maxTime[1] = (pxParameters->pxdata)->listT_V[maxdirection];
         // Valor después del valor maximo.
-        maxValue[2] = (double)(3.3 / 4096) * (pxParameters->pxdata)->listADC_V[maxdirection + 1] - 1.65;
+        maxValue[2] = (pxParameters->pxdata)->listADC_V[maxdirection + 1];
         maxTime[2] = (pxParameters->pxdata)->listT_V[maxdirection + 1];
+        // Decidir si cerder o activar la escritura de datos:
+        if (uxSemaphoreGetCount(xReadCount2) == 1)
+            xSemaphoreGive(xWriteProcessMutex2);
         // Ceder llave:
         xSemaphoreGive(xReadCount2);
-        // Activar la escritura de datos:
-        if (uxSemaphoreGetCount(xReadCount2) == 2)
-            xSemaphoreGive(xWriteProcessMutex2);
-
         // Dar oprotunidad a la tarea de ángulo ejecutarse:
-        vTaskDelay(3); // Minimo de 3 para que no se dañe el sistema
+        vTaskDelay(FACTOR_ESPERA);
 
         // Realizar Calculos:
 

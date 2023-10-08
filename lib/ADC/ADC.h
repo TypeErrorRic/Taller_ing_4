@@ -20,7 +20,7 @@
 
 /*--------------- Configuración del ADC ----------------*/
 
-#define FRECUENCIA 1        // Frecuencia de Muestreo 900/600/300
+#define FRECUENCIA 900      // Frecuencia de Muestreo 900/600/300
 #define FRECUENCIA_SENAL 60 // Frecuencia original de la señal a muestrear en hz.
 
 #define ADC_CHANNEL1 ADC1_CHANNEL_0 // Canal de ADC1
@@ -35,10 +35,10 @@
 // Estructura de captura de datos de los ADCs:
 typedef struct Capture_Parameters
 {
-    unsigned int listADC_I[QUEUE_LENGTH]; // Lista de valores de valores de la captura del ADC del core 0
-    unsigned int listADC_V[QUEUE_LENGTH]; // Lista de valores de valores de la captura del ADC del core 1
-    double listT_I[QUEUE_LENGTH];         // Instantes de captura del core 0
-    double listT_V[QUEUE_LENGTH];         // Instantes de captura del core 1
+    double listADC_I[QUEUE_LENGTH]; // Lista de valores de valores de la captura del ADC del core 0
+    double listADC_V[QUEUE_LENGTH]; // Lista de valores de valores de la captura del ADC del core 1
+    double listT_I[QUEUE_LENGTH];   // Instantes de captura del core 0
+    double listT_V[QUEUE_LENGTH];   // Instantes de captura del core 1
 } xCaptureParameters;
 
 /****************** Definición de tareas ****************/

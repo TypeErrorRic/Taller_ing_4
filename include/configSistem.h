@@ -22,6 +22,6 @@ typedef struct
     
 } taskDefinition;
 
-#define FACTOR_ESPERA 10
+#define FACTOR_ESPERA 5
 
 #endif

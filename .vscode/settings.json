@@ -12,6 +12,7 @@
         "timer.h": "c",
         "queue.h": "c",
         "gptimer.h": "c",
-        "clk_tree_defs.h": "c"
+        "clk_tree_defs.h": "c",
+        "freertosconfig.h": "c"
     }
 }

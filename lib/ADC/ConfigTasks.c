@@ -40,17 +40,17 @@ void initTask()
     // Core 1
     adc1_queue = xQueueCreate(QUEUE_LENGTH, sizeof(unsigned int));
     time1_queue = xQueueCreate(QUEUE_LENGTH, sizeof(unsigned long long));
-    time1_RTOS = xQueueCreate(1, sizeof(TickType_t));
+    time1_RTOS = xQueueCreate(1, sizeof(unsigned long));
     // Core 2
     adc2_queue = xQueueCreate(QUEUE_LENGTH, sizeof(unsigned int));
     time2_queue = xQueueCreate(QUEUE_LENGTH, sizeof(unsigned long long));
-    time2_RTOS = xQueueCreate(1, sizeof(TickType_t));
+    time2_RTOS = xQueueCreate(1, sizeof(unsigned long));
     // Crea un mutex para controlar la escritura de de datos en el arreglo:
     xWriteProcessMutex1 = xSemaphoreCreateMutex();
     xWriteProcessMutex2 = xSemaphoreCreateMutex();
     // Crea un mutex para controlar el aceeso de lectura.
-    xReadCount1 = xSemaphoreCreateCounting(2, 0);
-    xReadCount2 = xSemaphoreCreateCounting(2, 0);
+    xReadCount1 = xSemaphoreCreateCounting(2, 2);
+    xReadCount2 = xSemaphoreCreateCounting(2, 2);
 }
 
 // Función con las llamadas requeridas para realizar la configuración de los ADCs.

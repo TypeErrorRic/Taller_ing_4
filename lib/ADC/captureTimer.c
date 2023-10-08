@@ -28,6 +28,8 @@ static volatile unsigned char opcI = 0x00; // Para el voltaje.
 // Controlador de los timer.
 gptimer_handle_t gptimer1;
 gptimer_handle_t gptimer2;
+// TIMER WALL CLOCK:
+static gptimer_handle_t gptimer3;
 
 // configuración del timmer
 static gptimer_config_t timer_config = {
@@ -42,7 +44,7 @@ typedef struct Parameters_Timer
     // Variables Requeridas:
     unsigned int adc_value;
     unsigned long long tiempo;
-    TickType_t tiempoARTOS;
+    unsigned long tiempoSeconds;
     unsigned short contador;
     unsigned short i;
     // Colas de trasmición de datos:
@@ -51,6 +53,10 @@ typedef struct Parameters_Timer
     QueueHandle_t *time_RTOS;
     // Semaforo de captura:
     SemaphoreHandle_t *xMutexProcess;
+    // Tiempo transcurrido desde el segundo anterior:
+    unsigned long long usTime;
+    // Control del Wall Clock:
+    gptimer_handle_t *clock;
 } xTimersParameters;
 
 // Estructura de trasmición de datos:
@@ -76,6 +82,26 @@ gpio_config_t io_conf = {
 // Variable para almacenar el estado del LED (0: apagado, 1: encendido)
 static volatile int led_state = 0;
 
+// Variable para almacenar la cantidad de Segundos Transcurridos:
+static volatile unsigned long segundos = 0;
+
+// Configurar alarma:
+static gptimer_alarm_config_t alarm_configClock = {
+    .reload_count = 0,
+    .alarm_count = 1000000, // Cada Segundo:
+    .flags.auto_reload_on_alarm = true,
+};
+
+// Interrupción para el contador de segundos:
+static bool IRAM_ATTR wallClock(gptimer_handle_t timer, const gptimer_alarm_event_data_t *edata, void *user_data)
+{
+    segundos++;
+    return false;
+}
+static gptimer_event_callbacks_t cbs3 = {
+    .on_alarm = wallClock,
+};
+
 // ISR:
 static bool IRAM_ATTR timer_callbackI(gptimer_handle_t timer, const gptimer_alarm_event_data_t *edata, void *user_data)
 {
@@ -91,13 +117,16 @@ static bool IRAM_ATTR timer_callbackI(gptimer_handle_t timer, const gptimer_alar
         pvParameters->contador = 0;
         pvParameters->i = 0;
         pvParameters->adc_value = 0;
-        pvParameters->tiempo = 0;
-        pvParameters->tiempoARTOS = xTaskGetTickCount();
+        pvParameters->usTime = 0;
         // Capturar el instante en el que se empezara a capturar datos:
         if (xSemaphoreTakeFromISR(*(pvParameters->xMutexProcess), &high_task_awoken) == pdTRUE)
         {
+            // Capturar instante del tiempo:
+            gptimer_get_raw_count(*(pvParameters->clock), &pvParameters->usTime);
+            pvParameters->tiempo = pvParameters->usTime;
+            pvParameters->tiempoSeconds = segundos;
             // Guardar instante en que el sistema entra a la interrupción:
-            xQueueSendToBackFromISR(*(pvParameters->time_RTOS), &pvParameters->tiempoARTOS, &high_task_awoken);
+            xQueueSendToBackFromISR(*(pvParameters->time_RTOS), &pvParameters->tiempoSeconds, &high_task_awoken);
             opcI = MUESTREO;
         }
         break;
@@ -117,11 +146,12 @@ static bool IRAM_ATTR timer_callbackI(gptimer_handle_t timer, const gptimer_alar
             // Guardar en la cola:
             xQueueSendToBackFromISR(*(pvParameters->adc_queue), &pvParameters->adc_value, &high_task_awoken);
             xQueueSendToBackFromISR(*(pvParameters->time_queue), &pvParameters->tiempo, &high_task_awoken);
-            // Incrementar tiempo:
-            pvParameters->tiempo += edata->alarm_value;
             // Determinar si activar la tarea de procesamiento:
             if (pvParameters->i <= QUEUE_LENGTH)
             {
+                // Incrementar tiempo:
+                pvParameters->tiempo += edata->alarm_value;
+                //Reincicar variables:
                 pvParameters->contador = 0;
                 pvParameters->adc_value = 0;
                 pvParameters->i++;
@@ -163,12 +193,15 @@ static bool IRAM_ATTR timer_callbackV(gptimer_handle_t timer, const gptimer_alar
         pvParameters->contador = 0;
         pvParameters->i = 0;
         pvParameters->adc_value = 0;
-        pvParameters->tiempo = 0;
-        pvParameters->tiempoARTOS = xTaskGetTickCount();
+        pvParameters->usTime = 0;
         if (xSemaphoreTakeFromISR(*(pvParameters->xMutexProcess), &high_task_awoken) == pdTRUE)
         {
+            // Capturar instante del tiempo:
+            gptimer_get_raw_count(*(pvParameters->clock), &pvParameters->usTime);
+            pvParameters->tiempo = pvParameters->usTime;
+            pvParameters->tiempoSeconds = segundos;
             // Guardar instante en que el sistema entra a la interrupción:
-            xQueueSendToBackFromISR(*(pvParameters->time_RTOS), &pvParameters->tiempoARTOS, &high_task_awoken);
+            xQueueSendToBackFromISR(*(pvParameters->time_RTOS), &pvParameters->tiempoSeconds, &high_task_awoken);
             opcV = MUESTREO;
         }
         break;
@@ -191,11 +224,12 @@ static bool IRAM_ATTR timer_callbackV(gptimer_handle_t timer, const gptimer_alar
             // Guardar en la cola:
             xQueueSendToBackFromISR(*(pvParameters->adc_queue), &pvParameters->adc_value, &high_task_awoken);
             xQueueSendToBackFromISR(*(pvParameters->time_queue), &pvParameters->tiempo, &high_task_awoken);
-            // Incrementar time:
-            pvParameters->tiempo += edata->alarm_value;
             // Determinar si activar la tarea de procesamiento:
             if (pvParameters->i <= QUEUE_LENGTH)
             {
+                // Incrementar tiempo:
+                pvParameters->tiempo += edata->alarm_value;
+                //Reincicar variables:
                 pvParameters->contador = 0;
                 pvParameters->adc_value = 0;
                 pvParameters->i++;
@@ -244,7 +278,9 @@ void init_timers()
     pxParamsI->time_queue = &time1_queue;
     pxParamsI->xMutexProcess = &xMutexProcess1;
     pxParamsI->time_RTOS = &time1_RTOS;
-    pxParamsI->tiempoARTOS = (TickType_t)0;
+    pxParamsI->tiempoSeconds = 0;
+    pxParamsI->usTime = 0;
+    pxParamsI->clock = &gptimer3;
     // Timer:
     ESP_ERROR_CHECK(gptimer_new_timer(&timer_config, &gptimer1));
     ESP_LOGI(TAG, "Enable timer 1");
@@ -263,7 +299,9 @@ void init_timers()
     pxParamsV->time_queue = &time2_queue;
     pxParamsV->xMutexProcess = &xMutexProcess2;
     pxParamsV->time_RTOS = &time2_RTOS;
-    pxParamsV->tiempoARTOS = (TickType_t)0;
+    pxParamsV->tiempoSeconds = 0;
+    pxParamsV->usTime = 0;
+    pxParamsV->clock = &gptimer3;
     // Timer:
     ESP_ERROR_CHECK(gptimer_new_timer(&timer_config, &gptimer2));
     ESP_LOGI(TAG, "Enable timer 2");
@@ -271,4 +309,14 @@ void init_timers()
     ESP_ERROR_CHECK(gptimer_enable(gptimer2));
     ESP_LOGI(TAG, "Start timer 2, stop it at alarm event");
     ESP_ERROR_CHECK(gptimer_set_alarm_action(gptimer2, &alarm_config1));
+
+    // TIMER WALL CLOCK:
+    ESP_ERROR_CHECK(gptimer_new_timer(&timer_config, &gptimer3));
+    ESP_LOGI(TAG, "Enable timer Clock");
+    ESP_ERROR_CHECK(gptimer_register_event_callbacks(gptimer3, &cbs3, ((void *)0)));
+    ESP_ERROR_CHECK(gptimer_enable(gptimer3));
+    ESP_LOGI(TAG, "Start timer Clock, stop it at alarm event");
+    ESP_ERROR_CHECK(gptimer_set_alarm_action(gptimer3, &alarm_configClock));
+    // Iniciar el reloj:
+    ESP_ERROR_CHECK(gptimer_start(gptimer3));
 }

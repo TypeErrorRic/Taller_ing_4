@@ -20,36 +20,38 @@ static void vCorrCor(void *pvArguments)
     // Inicializar Parametros:
     xADCParameters *pxParameters;
     pxParameters = (xADCParameters *)pvArguments;
+    // Suspender sistema
     vTaskSuspend(NULL);
     // Bucle principal
     for (;;)
     {
-        // Sección critica de lectura de datos:
-        if (uxSemaphoreGetCount(xReadCount1) == 2)
-            xSemaphoreTake(xWriteProcessMutex1, (TickType_t)5);
+        // Tomar Semaforo:
         xSemaphoreTake(xReadCount1, (TickType_t)FACTOR_ESPERA);
+        // Sección critica de lectura de datos:
+        if (uxSemaphoreGetCount(xReadCount1) == 1)
+            xSemaphoreTake(xWriteProcessMutex1, (TickType_t)FACTOR_ESPERA);
         // Leer los datos del arreglo para obtener los valores maximos:
         for (unsigned short i = 1; i < QUEUE_LENGTH; i++)
         {
             // Capturar el dato de corte:
-            actualValue = ((pxParameters->pxdata)->listADC_V[i] - 2048);
-            preValue = ((pxParameters->pxdata)->listADC_V[i - 1] - 2048);
+            actualValue = (pxParameters->pxdata)->listADC_I[i];
+            preValue = (pxParameters->pxdata)->listADC_I[i - 1];
             if ((actualValue * preValue) < 0)
             {
-                corrValue[0] = ((double)(3.3 / 4096) * (pxParameters->pxdata)->listADC_I[i - 1]) - 1.65;
-                corrTime[0] = (double)(pxParameters->pxdata)->listT_I[i - 1];
-                corrValue[1] = ((double)(3.3 / 4096) * (pxParameters->pxdata)->listADC_I[i]) - 1.65;
-                corrTime[1] = (double)(pxParameters->pxdata)->listT_I[i];
+                corrValue[0] = (pxParameters->pxdata)->listADC_I[i - 1];
+                corrTime[0] = (pxParameters->pxdata)->listT_I[i - 1];
+                corrValue[1] = (pxParameters->pxdata)->listADC_I[i];
+                corrTime[1] = (pxParameters->pxdata)->listT_I[i];
                 break;
             }
         }
-        // Dar oprotunidad a la tarea de max ejecutarse:
-        vTaskDelay(3); // Minimo de 3 para que no se dañe el sistema
+        // Decidir si cerder o activar la escritura de datos:
+        if (uxSemaphoreGetCount(xReadCount1) == 1)
+            xSemaphoreGive(xWriteProcessMutex1);
         // Ceder llave:
         xSemaphoreGive(xReadCount1);
-        // Activar la escritura de datos:
-        if (uxSemaphoreGetCount(xReadCount1) == 2)
-            xSemaphoreGive(xWriteProcessMutex1);
+        // Dar oprotunidad a la tarea de max ejecutarse:
+        vTaskDelay(FACTOR_ESPERA);
 
         // Realizar Calculos:
 
@@ -74,34 +76,38 @@ static void vVoltCor(void *pvArguments)
     // Inicializar Parametros:
     xADCParameters *pxParameters;
     pxParameters = (xADCParameters *)pvArguments;
+    // Suspender sistema
     vTaskSuspend(NULL);
     // Bucle principal
     for (;;)
     {
-        // Sección critica de lectura de datos:
-        if (uxSemaphoreGetCount(xReadCount2) == 2)
-            xSemaphoreTake(xWriteProcessMutex2, (TickType_t)5);
+        // Tomar Semaforo:
         xSemaphoreTake(xReadCount2, (TickType_t)FACTOR_ESPERA);
+        // Sección critica de lectura de datos:
+        if (uxSemaphoreGetCount(xReadCount2) == 1)
+            xSemaphoreTake(xWriteProcessMutex2, (TickType_t)FACTOR_ESPERA);
         for (unsigned short i = 1; i < QUEUE_LENGTH; i++)
         {
             // Capturar el dato de corte:
-            actualValue = ((pxParameters->pxdata)->listADC_V[i] - 2048);
-            preValue = ((pxParameters->pxdata)->listADC_V[i - 1] - 2048);
+            actualValue = (pxParameters->pxdata)->listADC_V[i];
+            preValue = (pxParameters->pxdata)->listADC_V[i - 1];
             if ((actualValue * preValue) < 0)
             {
-                voltValue[0] = ((double)(3.3 / 4096) * (pxParameters->pxdata)->listADC_V[i - 1]) - 1.65;
+                voltValue[0] = (pxParameters->pxdata)->listADC_V[i - 1];
                 voltTime[0] = (pxParameters->pxdata)->listT_V[i - 1];
-                voltValue[1] = ((double)(3.3 / 4096) * (pxParameters->pxdata)->listADC_V[i]) - 1.65;
+                voltTime[1] = (pxParameters->pxdata)->listADC_V[i];
                 voltTime[1] = (pxParameters->pxdata)->listT_V[i];
+                break;
             }
         }
-        // Dar oprotunidad a la tarea de max ejecutarse:
-        vTaskDelay(3); // Minimo de 3 para que no se dañe el sistema
+        // Decidir si cerder o activar la escritura de datos:
+        if (uxSemaphoreGetCount(xReadCount2) == 1)
+            xSemaphoreGive(xWriteProcessMutex2);
         // Ceder llave:
         xSemaphoreGive(xReadCount2);
-        // Activar la escritura de datos:
-        if (uxSemaphoreGetCount(xReadCount2) == 2)
-            xSemaphoreGive(xWriteProcessMutex2);
+        // Dar oprotunidad a la tarea de max ejecutarse:
+        vTaskDelay(FACTOR_ESPERA);
+
         // Realizar Calculos:
 
         // printf(">Vc:%f\t", voltValue[0]);
