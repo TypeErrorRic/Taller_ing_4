@@ -44,13 +44,13 @@ typedef struct Capture_Parameters
 /****************** Definición de tareas ****************/
 
 /*----------------------- Core 0 -----------------------*/
-extern taskDefinition taskADCCaptureI; // Tarea 1 asociado a la captura de datos.
+////Interrupción Asociado a la captura del valor de la Corriente////.
 extern taskDefinition taskADCProcessI; // Tarea 1 asociado al procesamiento de los datos.
 extern taskDefinition taskCorrMaxI;    // Tarea asociado a la obtención del Imax.
 extern taskDefinition taskCorrCorI;    // Tarea absociado a la obtención del punto de corte de I.
 
 /*----------------------- Core 1 -----------------------*/
-extern taskDefinition taskADCCaptureV; // Tarea 2 asociado a la captura de datos.
+////Interrupción Asociado a la captura del valor del Voltaje////.
 extern taskDefinition taskADCProcessV; // Tarea 2 asociado al procesamiento de los datos.
 extern taskDefinition taskVoltMaxV;    // Tarea asociado a la obtención del Vmax.
 extern taskDefinition taskVoltCorV;    // Tarea absociado a la obtención del punto de corte de V.
