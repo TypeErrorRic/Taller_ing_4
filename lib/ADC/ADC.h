@@ -20,14 +20,14 @@
 
 /*--------------- Configuración del ADC ----------------*/
 
-#define FRECUENCIA 900      // Frecuencia de Muestreo 900/600/300
+#define FRECUENCIA 300      // Frecuencia de Muestreo 900/600/300
 #define FRECUENCIA_SENAL 60 // Frecuencia original de la señal a muestrear en hz.
 
 #define ADC_CHANNEL1 ADC1_CHANNEL_0 // Canal de ADC1
 #define ADC_CHANNEL2 ADC2_CHANNEL_0 // Canal de ADC2
 
 // Definir el tamaño de la cola:
-#define QUEUE_LENGTH (FRECUENCIA > 300 ? (((unsigned int)FRECUENCIA / FRECUENCIA_SENAL) * 2) : 10)
+#define QUEUE_LENGTH (FRECUENCIA >= 300 ? (((unsigned int)FRECUENCIA / FRECUENCIA_SENAL) * 2) : 10)
 
 // Pin GPIO para el LED incorporado en el ESP32 DevKit
 #define LED_PIN GPIO_NUM_2
