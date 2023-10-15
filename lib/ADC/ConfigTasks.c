@@ -15,7 +15,7 @@ QueueHandle_t adc1_queue;  // Cola con los valores del ADC de Corriente.
 QueueHandle_t adc2_queue;  // Cola con los valores del ADC de Voltaje.
 QueueHandle_t time1_queue; // Cola con los valores del instante de Captura de la Corriente.
 QueueHandle_t time1_RTOS;  // Valor del instante en que el sistema empezo a tomar muestras en relación con el reloj de Freertos.
-QueueHandle_t time2_queue; // Cola con los volores del instante de Captura del Voltaje.
+QueueHandle_t time2_queue; // Cola con los valores del instante de Captura del Voltaje.
 QueueHandle_t time2_RTOS;  // Valor del instante en que el sistema empezo a tomar muestras en relación con el reloj de Freertos.
 
 // Semaforos de control del ADCs:

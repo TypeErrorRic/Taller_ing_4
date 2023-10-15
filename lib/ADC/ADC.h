@@ -20,7 +20,7 @@
 
 /*--------------- Configuración del ADC ----------------*/
 
-#define FRECUENCIA 300      // Frecuencia de Muestreo 900/600/300
+#define FRECUENCIA 600      // Frecuencia de Muestreo 900/600/300
 #define FRECUENCIA_SENAL 60 // Frecuencia original de la señal a muestrear en hz.
 
 #define ADC_CHANNEL1 ADC1_CHANNEL_0 // Canal de ADC1

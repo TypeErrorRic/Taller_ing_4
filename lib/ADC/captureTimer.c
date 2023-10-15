@@ -23,7 +23,7 @@ static volatile unsigned char opcI = 0x00; // Para el voltaje.
 
 // Configuración:
 #define RESOLUTION 1000000 // 1MHz, 1 tick = 1us
-#define ALARMA ((unsigned int)(((double)1) / (FRECUENCIA * 3) * 1000000))
+#define ALARMA ((unsigned int)((((double)1) / (FRECUENCIA * 3)) * 1000000))
 
 // Controlador de los timer.
 gptimer_handle_t gptimer1;
@@ -38,7 +38,7 @@ static gptimer_config_t timer_config = {
     .resolution_hz = RESOLUTION,
 };
 
-// Estrctura de datos para la trasmición de datos en las interrupciones:
+// Estructura de datos para la trasmición de datos en las interrupciones:
 typedef struct Parameters_Timer
 {
     // Variables Requeridas:

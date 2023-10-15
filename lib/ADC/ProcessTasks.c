@@ -50,7 +50,7 @@ static void vCorrienteProcess(void *pvParameters)
         {
             if (xQueueReceive(adc1_queue, &adc_value, (TickType_t)0))
             {
-                (pxParameters->pxdata)->listADC_I[i] = (double)(3.3 / 4096) * adc_value - 1.65;
+                (pxParameters->pxdata)->listADC_I[i] = (double)(3.3 / 4095) * adc_value;
                 if (xQueueReceive(time1_queue, &time, (TickType_t)0))
                     (pxParameters->pxdata)->listT_I[i] = (timeSeconds + ((double)time / 1000000));
                 else
@@ -104,7 +104,7 @@ static void vVoltajeProcess(void *pvParameters)
         {
             if (xQueueReceive(adc2_queue, &adc_value, (TickType_t)0))
             {
-                (pxParameters->pxdata)->listADC_V[i] = (double)(3.3 / 4096) * adc_value - 1.65;
+                (pxParameters->pxdata)->listADC_V[i] = (double)(3.3 / 4095) * adc_value;
                 if (xQueueReceive(time2_queue, &time, (TickType_t)0))
                     (pxParameters->pxdata)->listT_V[i] = (timeSeconds + ((double)time / 1000000));
                 else
