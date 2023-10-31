@@ -15,6 +15,13 @@ static void vCorrMaxProcess(void *pvArguments)
     unsigned short maxdirection = 0;
     double maxValue[3];
     double maxTime[3];
+    double maxCor = 0;
+    // Coeficicentes polinomio:
+    double a = 0;
+    double b = 0;
+    double c = 0;
+    double aux1 = 0;
+    double aux2 = 0;
     // Inicializar Parametros:
     xADCParameters *pxParameters;
     pxParameters = (xADCParameters *)pvArguments;
@@ -52,10 +59,23 @@ static void vCorrMaxProcess(void *pvArguments)
         vTaskDelay(FACTOR_ESPERA);
 
         // Realizar Calculos:
+        // Relacionado con la interpolacion
+        aux1 = (maxValue[1] - maxValue[0]) / (maxTime[1] - maxTime[0]);
+        aux2 = (maxValue[2] - maxValue[1]) / (maxTime[2] - maxTime[1]);
+        // Coeficientes del polinomio hallados con la interpolacion cuadratica
+        a = (aux2 - aux1) / (maxTime[2] - maxTime[0]);
+        b = aux1 - a * (maxTime[1] - maxTime[0]);
+        c = maxValue[0] - aux1 * maxTime[0] + a * maxTime[1] * maxTime[0];
+        // Valor maximo de corriente:
+        maxCor = c - ((b * b) / (4 * a));
+
+        xSemaphoreTake(xPower2, (TickType_t)portMAX_DELAY);
+        pxParameters->dVmax = maxCor;
+        xSemaphoreGive(xPower2);
 
         // Prueba:
-        printf(">I:%f\t", maxValue[1]);
-        printf(">T:%f\n", maxTime[1]);
+        // printf(">I:%f\t", maxValue[1]);
+        // printf(">T:%f\n", maxTime[1]);
 
         /*-------------------*/
 
@@ -70,6 +90,13 @@ static void vVoltMaxProcess(void *pvArguments)
     unsigned short maxdirection = 0;
     double maxValue[3] = {};
     double maxTime[3] = {};
+    double maxVolt = 0;
+    // Coeficicentes polinomio:
+    double a = 0;
+    double b = 0;
+    double c = 0;
+    double aux1 = 0;
+    double aux2 = 0;
     // Inicializar Parametros:
     xADCParameters *pxParameters;
     pxParameters = (xADCParameters *)pvArguments;
@@ -106,10 +133,23 @@ static void vVoltMaxProcess(void *pvArguments)
         vTaskDelay(FACTOR_ESPERA);
 
         // Realizar Calculos:
+        // Relacionado con la interpolacion
+        aux1 = (maxValue[1] - maxValue[0]) / (maxTime[1] - maxTime[0]);
+        aux2 = (maxValue[2] - maxValue[1]) / (maxTime[2] - maxTime[1]);
+        // Coeficientes del polinomio hallados con la interpolacion cuadratica
+        a = (aux2 - aux1) / (maxTime[2] - maxTime[0]);
+        b = aux1 - a * (maxTime[1] - maxTime[0]);
+        c = maxValue[0] - aux1 * maxTime[0] + a * maxTime[1] * maxTime[0];
+        // Valor maximo de corriente:
+        maxVolt = c - ((b * b) / (4 * a));
+
+        xSemaphoreTake(xPower1, (TickType_t)portMAX_DELAY);
+        pxParameters->dVmax = maxVolt;
+        xSemaphoreGive(xPower1);
 
         // Prueba:
-        printf(">V:%f\t", maxValue[1]);
-        printf(">T:%f\n", maxTime[1]);
+        // printf(">V:%f\t", maxValue[1]);
+        // printf(">T:%f\n", maxTime[1]);
 
         /*-------------------*/
 

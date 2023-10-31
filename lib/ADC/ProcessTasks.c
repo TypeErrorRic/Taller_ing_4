@@ -50,7 +50,7 @@ static void vCorrienteProcess(void *pvParameters)
         {
             if (xQueueReceive(adc1_queue, &adc_value, (TickType_t)0))
             {
-                (pxParameters->pxdata)->listADC_I[i] = (double)(3.3 / 4095) * adc_value;
+                (pxParameters->pxdata)->listADC_I[i] = ((double)(3.3 / 4095) * adc_value);
                 if (xQueueReceive(time1_queue, &time, (TickType_t)0))
                     (pxParameters->pxdata)->listT_I[i] = (timeSeconds + ((double)time / 1000000));
                 else
@@ -153,6 +153,7 @@ void setupTaskProcessADCs()
     pxADCParameters->dImax = 0;
     pxADCParameters->dcorteRefVt = 0;
     pxADCParameters->dcorteRefIt = 0;
+    pxADCParameters->dAngle = 0;
 
     // Definir la Tarea para el Procesamiento de la Señal de Corriente:
     taskADCProcessI.taskId = vCorrienteProcess;
