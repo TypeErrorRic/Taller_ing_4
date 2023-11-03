@@ -22,7 +22,6 @@ static volatile unsigned char opcI = 0x00; // Para el voltaje.
 #define CEDER 0x02
 
 // Configuración:
-#define RESOLUTION 1000000 // 1MHz, 1 tick = 1us
 #define ALARMA ((unsigned int)((((double)1) / (FRECUENCIA * 3)) * 1000000))
 
 // Controlador de los timer.
@@ -121,9 +120,7 @@ static bool IRAM_ATTR timer_callbackI(gptimer_handle_t timer, const gptimer_alar
         // Capturar el instante en el que se empezara a capturar datos:
         if (xSemaphoreTakeFromISR(*(pvParameters->xMutexProcess), &high_task_awoken) == pdTRUE)
         {
-            // Capturar instante del tiempo:
-            gptimer_get_raw_count(*(pvParameters->clock), &pvParameters->usTime);
-            pvParameters->tiempo = pvParameters->usTime;
+            // Capturar instante del tiempo en segundos:
             pvParameters->tiempoSeconds = segundos;
             // Guardar instante en que el sistema entra a la interrupción:
             xQueueSendToBackFromISR(*(pvParameters->time_RTOS), &pvParameters->tiempoSeconds, &high_task_awoken);
@@ -135,7 +132,17 @@ static bool IRAM_ATTR timer_callbackI(gptimer_handle_t timer, const gptimer_alar
         if (pvParameters->contador < 2)
         {
             pvParameters->adc_value += adc1_get_raw(ADC_CHANNEL1);
-            pvParameters->tiempo += edata->alarm_value;
+            // Capturar instante del tiempo:
+            if (pvParameters->contador == 1)
+            {
+                if (segundos > pvParameters->tiempoSeconds)
+                {
+                    gptimer_get_raw_count(*(pvParameters->clock), &pvParameters->usTime);
+                    pvParameters->tiempo = pvParameters->usTime + (RESOLUTION * (segundos - pvParameters->tiempoSeconds));
+                }
+                else
+                    gptimer_get_raw_count(*(pvParameters->clock), &pvParameters->tiempo);
+            }
             pvParameters->contador++;
         }
         else
@@ -149,9 +156,7 @@ static bool IRAM_ATTR timer_callbackI(gptimer_handle_t timer, const gptimer_alar
             // Determinar si activar la tarea de procesamiento:
             if (pvParameters->i <= QUEUE_LENGTH)
             {
-                // Incrementar tiempo:
-                pvParameters->tiempo += edata->alarm_value;
-                //Reincicar variables:
+                // Reincicar variables:
                 pvParameters->contador = 0;
                 pvParameters->adc_value = 0;
                 pvParameters->i++;
@@ -196,9 +201,7 @@ static bool IRAM_ATTR timer_callbackV(gptimer_handle_t timer, const gptimer_alar
         pvParameters->usTime = 0;
         if (xSemaphoreTakeFromISR(*(pvParameters->xMutexProcess), &high_task_awoken) == pdTRUE)
         {
-            // Capturar instante del tiempo:
-            gptimer_get_raw_count(*(pvParameters->clock), &pvParameters->usTime);
-            pvParameters->tiempo = pvParameters->usTime;
+            // Capturar instante del tiempo en segundos:
             pvParameters->tiempoSeconds = segundos;
             // Guardar instante en que el sistema entra a la interrupción:
             xQueueSendToBackFromISR(*(pvParameters->time_RTOS), &pvParameters->tiempoSeconds, &high_task_awoken);
@@ -212,7 +215,17 @@ static bool IRAM_ATTR timer_callbackV(gptimer_handle_t timer, const gptimer_alar
         {
             adc2_get_raw(ADC_CHANNEL2, ADC_WIDTH_BIT_12, &promedioV);
             pvParameters->adc_value += promedioV;
-            pvParameters->tiempo += edata->alarm_value;
+            // Capturar instante del tiempo:
+            if (pvParameters->contador == 1)
+            {
+                if (segundos > pvParameters->tiempoSeconds)
+                {
+                    gptimer_get_raw_count(*(pvParameters->clock), &pvParameters->usTime);
+                    pvParameters->tiempo = pvParameters->usTime + (RESOLUTION * (segundos - pvParameters->tiempoSeconds));
+                }
+                else
+                    gptimer_get_raw_count(*(pvParameters->clock), &pvParameters->tiempo);
+            }
             pvParameters->contador++;
         }
         else
@@ -227,9 +240,7 @@ static bool IRAM_ATTR timer_callbackV(gptimer_handle_t timer, const gptimer_alar
             // Determinar si activar la tarea de procesamiento:
             if (pvParameters->i <= QUEUE_LENGTH)
             {
-                // Incrementar tiempo:
-                pvParameters->tiempo += edata->alarm_value;
-                //Reincicar variables:
+                // Reincicar variables:
                 pvParameters->contador = 0;
                 pvParameters->adc_value = 0;
                 pvParameters->i++;

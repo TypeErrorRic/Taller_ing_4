@@ -46,6 +46,7 @@ static void calculateReactivePower(void *pvArguments)
     // Inicializar Parametros:
     xADCParameters *pxParameters;
     pxParameters = (xADCParameters *)pvArguments;
+    vTaskSuspend(NULL);
     // Bucle principal
     for (;;)
     {

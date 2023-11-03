@@ -23,7 +23,11 @@ taskDefinition taskADCProcessV;
 // Argumentos transferidos a las tareas:
 xADCParameters *pxADCParameters;
 
+// Definir retardo:
 #define DELAY_TIME (FRECUENCIA > 10 ? FACTOR_ESPERA : ((int)1000 / portTICK_PERIOD_MS))
+
+// Definir la Compensación entre los dos Canales.
+#define COMPENSACION (float)0.009133
 
 // Implementación de la tarea de procesamiento de los datos del ADC:
 static void vCorrienteProcess(void *pvParameters)
@@ -50,9 +54,9 @@ static void vCorrienteProcess(void *pvParameters)
         {
             if (xQueueReceive(adc1_queue, &adc_value, (TickType_t)0))
             {
-                (pxParameters->pxdata)->listADC_I[i] = ((double)(3.3 / 4095) * adc_value);
+                (pxParameters->pxdata)->listADC_I[i] = ((double)(3.3 / 4095) * adc_value) + COMPENSACION;
                 if (xQueueReceive(time1_queue, &time, (TickType_t)0))
-                    (pxParameters->pxdata)->listT_I[i] = (timeSeconds + ((double)time / 1000000));
+                    (pxParameters->pxdata)->listT_I[i] = (timeSeconds + ((double)time / RESOLUTION));
                 else
                     break;
             }
@@ -106,7 +110,7 @@ static void vVoltajeProcess(void *pvParameters)
             {
                 (pxParameters->pxdata)->listADC_V[i] = (double)(3.3 / 4095) * adc_value;
                 if (xQueueReceive(time2_queue, &time, (TickType_t)0))
-                    (pxParameters->pxdata)->listT_V[i] = (timeSeconds + ((double)time / 1000000));
+                    (pxParameters->pxdata)->listT_V[i] = (timeSeconds + ((double)time / RESOLUTION));
                 else
                     break;
             }

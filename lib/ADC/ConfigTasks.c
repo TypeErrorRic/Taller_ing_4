@@ -17,7 +17,6 @@ QueueHandle_t time1_queue; // Cola con los valores del instante de Captura de la
 QueueHandle_t time1_RTOS;  // Valor del instante en que el sistema empezo a tomar muestras en relación con el reloj de Freertos.
 QueueHandle_t time2_queue; // Cola con los valores del instante de Captura del Voltaje.
 QueueHandle_t time2_RTOS;  // Valor del instante en que el sistema empezo a tomar muestras en relación con el reloj de Freertos.
-QueueHandle_t timesAng_queue; // Valores de instantes de tiempos del cruce por referencia del voltaje y la corriente.
 
 // Semaforos de control del ADCs:
 SemaphoreHandle_t xMutexProcess1; // Declaración del semáforo del core 0.
@@ -30,7 +29,9 @@ SemaphoreHandle_t xWriteProcessMutex2;
 // Regulador de acceso para sincronización de modificación del arreglo de process:
 SemaphoreHandle_t xReadCount1;
 SemaphoreHandle_t xReadCount2;
-SemaphoreHandle_t xWriteCount;
+
+// Regular el accesso de escritura y lectura de datos sobre el ángulo:
+SemaphoreHandle_t xWriteAngle;
 
 // Regulador de acceso de los valores de voltaje, corriente y angulo para calcular la potencia:
 SemaphoreHandle_t xPower1;
@@ -40,45 +41,43 @@ SemaphoreHandle_t xPower3;
 // Inicializar Tareas de captura:
 void initTask()
 {
-    // Inicializar los mutex para manejar la transferencia de datos:
-    xMutexProcess1 = xSemaphoreCreateMutex();
-    xMutexProcess2 = xSemaphoreCreateMutex();
-      // Inicializar colas de trasmición:
-    // Core 1
-    adc1_queue = xQueueCreate(QUEUE_LENGTH, sizeof(unsigned int));
-    time1_queue = xQueueCreate(QUEUE_LENGTH, sizeof(unsigned long long));
-    time1_RTOS = xQueueCreate(1, sizeof(unsigned long));
-    // Core 2
-    adc2_queue = xQueueCreate(QUEUE_LENGTH, sizeof(unsigned int));
-    time2_queue = xQueueCreate(QUEUE_LENGTH, sizeof(unsigned long long));
-    time2_RTOS = xQueueCreate(1, sizeof(unsigned long));
-    // Sin nucleo asignado
-    timesAng_queue = xQueueCreate(2, sizeof(double));
-    // Crea un mutex para controlar la escritura de de datos en el arreglo:
-    xWriteProcessMutex1 = xSemaphoreCreateMutex();
-    xWriteProcessMutex2 = xSemaphoreCreateMutex();
-    // Crea un mutex para controlar el aceeso de lectura.
-    xReadCount1 = xSemaphoreCreateCounting(2, 2);
-    xReadCount2 = xSemaphoreCreateCounting(2, 2);
-    // Crea un mutex para controlar el aceeso de escritura.
-    xWriteCount = xSemaphoreCreateMutex();
-    // Crea un mutex para controlar el aceeso a los valores de voltaje, corriente y angulo.
-    xPower1 = xSemaphoreCreateMutex();
-    xPower2 = xSemaphoreCreateMutex();
-    xPower3 = xSemaphoreCreateMutex();
+  // Inicializar los mutex para manejar la transferencia de datos:
+  xMutexProcess1 = xSemaphoreCreateMutex();
+  xMutexProcess2 = xSemaphoreCreateMutex();
+  // Inicializar colas de trasmición:
+  // Core 1
+  adc1_queue = xQueueCreate(QUEUE_LENGTH, sizeof(unsigned int));
+  time1_queue = xQueueCreate(QUEUE_LENGTH, sizeof(unsigned long long));
+  time1_RTOS = xQueueCreate(1, sizeof(unsigned long));
+  // Core 2
+  adc2_queue = xQueueCreate(QUEUE_LENGTH, sizeof(unsigned int));
+  time2_queue = xQueueCreate(QUEUE_LENGTH, sizeof(unsigned long long));
+  time2_RTOS = xQueueCreate(1, sizeof(unsigned long));
+  // Crea un mutex para controlar la escritura de de datos en el arreglo:
+  xWriteProcessMutex1 = xSemaphoreCreateMutex();
+  xWriteProcessMutex2 = xSemaphoreCreateMutex();
+  // Crea un semaforo contador para controlar el aceso de lectura.
+  xReadCount1 = xSemaphoreCreateCounting(2, 2);
+  xReadCount2 = xSemaphoreCreateCounting(2, 2);
+  // Crea un mutex para controlar el aceeso de escritura del ángulo.
+  xWriteAngle = xSemaphoreCreateCounting(2, 2);
+  // Crea un mutex para controlar el aceeso a los valores de voltaje, corriente y angulo.
+  xPower1 = xSemaphoreCreateMutex();
+  xPower2 = xSemaphoreCreateMutex();
+  xPower3 = xSemaphoreCreateMutex();
 }
 
 // Función con las llamadas requeridas para realizar la configuración de los ADCs.
 void initElementsADCs()
 {
-    // Configuración de estrucutras de trasmición de datos:
-    initTask();
-    // Configuración de tareas:
-    setupTaskProcessADCs();
-    setupTaskCalculeProcess();
-    setupTaskCalculeCorProcess();
-    setupTaskCalculeAngle();
-    setupTaskCalculePower();
-    // Configuración de timers:
-    init_timers();
+  // Configuración de estrucutras de trasmición de datos:
+  initTask();
+  // Configuración de tareas:
+  setupTaskProcessADCs();
+  setupTaskCalculeProcess();
+  setupTaskCalculeCorProcess();
+  setupTaskCalculeAngle();
+  setupTaskCalculePower();
+  // Configuración de timers:
+  init_timers();
 }

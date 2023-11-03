@@ -20,11 +20,13 @@
 
 /*--------------- Configuración del ADC ----------------*/
 
-#define FRECUENCIA 600      // Frecuencia de Muestreo 900/600/300
+#define FRECUENCIA 10      // Frecuencia de Muestreo 900/600/300
 #define FRECUENCIA_SENAL 60 // Frecuencia original de la señal a muestrear en hz.
 
 #define ADC_CHANNEL1 ADC1_CHANNEL_0 // Canal de ADC1
 #define ADC_CHANNEL2 ADC2_CHANNEL_0 // Canal de ADC2
+
+#define RESOLUTION 1000000 // 1MHz, 1 tick = 1us Resolución del timer de WALL-CLOCK
 
 // Definir el tamaño de la cola:
 #define QUEUE_LENGTH (FRECUENCIA >= 300 ? (((unsigned int)FRECUENCIA / FRECUENCIA_SENAL) * 2) : 10)
@@ -75,10 +77,12 @@ extern SemaphoreHandle_t xWriteProcessMutex1; // Semaforo de control de aceso de
 extern SemaphoreHandle_t xWriteProcessMutex2; // Semaforo de control de aceso de escritura al arreglo en el core 2.
 extern SemaphoreHandle_t xReadCount1;         // Semaforo de control de lectura de datos del arreglo en el core 1.
 extern SemaphoreHandle_t xReadCount2;         // Semaforo de control de lectura de datos del arreglo en el core 2.
-extern SemaphoreHandle_t xWriteCount;         // Semaforo de control de escritura de datos en la cola con los valores de tiempo de corte.
-extern SemaphoreHandle_t xPower1;         // Semaforo de control para acceder al valor del voltaje maximo.
-extern SemaphoreHandle_t xPower2;         // Semaforo de control para acceder al valor de la corriente maxima.
-extern SemaphoreHandle_t xPower3;         // Semaforo de control para acceder al valor del angulo.
+
+extern SemaphoreHandle_t xWriteAngle; // Semaforo de control de escritura de datos sobre los valores de tiempo de corte.
+
+extern SemaphoreHandle_t xPower1; // Semaforo de control para acceder al valor del voltaje maximo.
+extern SemaphoreHandle_t xPower2; // Semaforo de control para acceder al valor de la corriente maxima.
+extern SemaphoreHandle_t xPower3; // Semaforo de control para acceder al valor del angulo.
 
 /**** Configuración de Parametros de tiempo del ADC ****/
 typedef struct ADC_Parameters

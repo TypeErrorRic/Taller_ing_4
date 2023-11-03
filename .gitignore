@@ -13,3 +13,4 @@ sdkconfig
 test/
 build/
 *.gif
+desfasador/

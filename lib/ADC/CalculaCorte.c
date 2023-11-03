@@ -1,7 +1,7 @@
 #include <ADC.h>
 
 static const char *TAG = "Cor Value";
-#define REF_VALUE 0.45
+#define REF_VALUE (float)1.75
 
 // Definición de las Tareas:
 taskDefinition taskCorrCorI;
@@ -15,7 +15,6 @@ static void vCorrCor(void *pvArguments)
 {
     // Valores de captura de dato:
     double corrCorTime = 0;
-    float refValue = REF_VALUE;
     double actualValue = 0;
     double preValue = 0;
     double actualTime = 0;
@@ -31,6 +30,8 @@ static void vCorrCor(void *pvArguments)
         corrCorTime = 0;
         // Tomar Semaforo:
         xSemaphoreTake(xReadCount1, (TickType_t)FACTOR_ESPERA);
+        //Tiempo para actualizar datos.
+        vTaskDelay(1);
         // Sección critica de lectura de datos:
         if (uxSemaphoreGetCount(xReadCount1) == 1)
             xSemaphoreTake(xWriteProcessMutex1, (TickType_t)FACTOR_ESPERA);
@@ -40,35 +41,43 @@ static void vCorrCor(void *pvArguments)
             // Capturar el dato de corte:
             actualValue = (pxParameters->pxdata)->listADC_I[i];
             preValue = (pxParameters->pxdata)->listADC_I[i - 1];
-            if ((preValue >= refValue && actualValue < refValue))
+            if ((preValue >= REF_VALUE && actualValue < REF_VALUE))
             {
                 actualTime = (pxParameters->pxdata)->listT_I[i];
                 preTime = (pxParameters->pxdata)->listT_I[i - 1];
-                corrCorTime = preTime + (actualTime - preTime) * (refValue - preValue) / (actualValue - preValue);
+                corrCorTime = preTime + (actualTime - preTime) * (REF_VALUE - preValue) / (actualValue - preValue);
                 break;
             }
-            if ((i + 1 == QUEUE_LENGTH) && (pxParameters->pxdata)->listADC_I[QUEUE_LENGTH - 1] == refValue)
-                corrCorTime = (pxParameters->pxdata)->listT_I[QUEUE_LENGTH - 1];
         }
         // Decidir si cerder o activar la escritura de datos:
         if (uxSemaphoreGetCount(xReadCount1) == 1)
             xSemaphoreGive(xWriteProcessMutex1);
         // Ceder llave:
         xSemaphoreGive(xReadCount1);
-        // Sección critica de escritura de datos:
-        xSemaphoreTake(xWriteCount, (TickType_t)FACTOR_ESPERA);
-        // Guardar en la cola el valor calculado:
-        xQueueSendToBack(timesAng_queue, &corrCorTime, portMAX_DELAY);
-        // Ceder llave;
-        xSemaphoreGive(xWriteCount);
-        // Verificar si la cola esta llena
-        if (uxQueueSpacesAvailable(timesAng_queue) == 0)
-            // Activar la tarea de calcular el angulo
-            vTaskResume(xTaskAngle);
-        // Prueba:
-        /*if (corrCorTime != 0)
-            printf(">TIc:%f\n", corrCorTime);*/
+        // Dar oprotunidad a la tarea de ángulo ejecutarse:
+        vTaskDelay(FACTOR_ESPERA);
+
+        // Tomar llave de escritura de datos para P.A y P.R:
+        xSemaphoreTake(xWriteAngle, (TickType_t)FACTOR_ESPERA);
+        //Tiempo para actualizar datos.
+        vTaskDelay(1);
+        //Esperar a que la tarea de Ángulo termine de procesar los datos:
+        while (eTaskGetState(xTaskAngle) != eSuspended)
+            vTaskDelay(FACTOR_ESPERA);
+        //Guardar valor del Ángulo:
+        pxADCParameters->dcorteRefIt = corrCorTime;
+
+        //Finalizar Tarea:
         ESP_LOGI(TAG, "Fin Cor I");
+        // Decidir si cerder o activar la escritura de datos:
+        if (uxSemaphoreGetCount(xWriteAngle) == 1)
+        {
+            // Ceder llave:
+            xSemaphoreGive(xWriteAngle);
+            //Activar tarea de ángulo:
+            vTaskResume(xTaskAngle);
+        }
+        else xSemaphoreGive(xWriteAngle);
         // Suspender.
         vTaskSuspend(NULL);
     }
@@ -78,7 +87,6 @@ static void vVoltCor(void *pvArguments)
 {
     // Valores de captura de dato:
     double voltCorTime = 0;
-    float refValue = REF_VALUE;
     double actualValue = 0;
     double preValue = 0;
     double actualTime = 0;
@@ -94,6 +102,8 @@ static void vVoltCor(void *pvArguments)
         voltCorTime = 0;
         // Tomar Semaforo:
         xSemaphoreTake(xReadCount2, (TickType_t)FACTOR_ESPERA);
+        //Tiempo para actualizar datos.
+        vTaskDelay(1);
         // Sección critica de lectura de datos:
         if (uxSemaphoreGetCount(xReadCount2) == 1)
             xSemaphoreTake(xWriteProcessMutex2, (TickType_t)FACTOR_ESPERA);
@@ -102,35 +112,43 @@ static void vVoltCor(void *pvArguments)
             // Capturar el dato de corte:
             actualValue = (pxParameters->pxdata)->listADC_V[i];
             preValue = (pxParameters->pxdata)->listADC_V[i - 1];
-            if ((preValue >= refValue && actualValue < refValue))
+            if ((preValue >= REF_VALUE && actualValue < REF_VALUE))
             {
                 actualTime = (pxParameters->pxdata)->listT_V[i];
                 preTime = (pxParameters->pxdata)->listT_V[i - 1];
-                voltCorTime = preTime + (actualTime - preTime) * (refValue - preValue) / (actualValue - preValue);
+                voltCorTime = preTime + (actualTime - preTime) * (REF_VALUE - preValue) / (actualValue - preValue);
                 break;
             }
-            if ((i + 1 == QUEUE_LENGTH) && (pxParameters->pxdata)->listADC_V[QUEUE_LENGTH - 1] == refValue)
-                voltCorTime = (pxParameters->pxdata)->listT_V[QUEUE_LENGTH - 1];
         }
         // Decidir si cerder o activar la escritura de datos:
         if (uxSemaphoreGetCount(xReadCount2) == 1)
             xSemaphoreGive(xWriteProcessMutex2);
         // Ceder llave:
         xSemaphoreGive(xReadCount2);
-        // Sección critica de escritura de datos:
-        xSemaphoreTake(xWriteCount, (TickType_t)FACTOR_ESPERA);
-        // Guardar en la cola el valor calculado:
-        xQueueSendToBack(timesAng_queue, &voltCorTime, portMAX_DELAY);
-        // Ceder llave:
-        xSemaphoreGive(xWriteCount);
-        // Verificar si la cola esta llena
-        if (uxQueueSpacesAvailable(timesAng_queue) == 0)
-            // Activar la tarea de calcular el angulo
-            vTaskResume(xTaskAngle);
-        // Prueba
-        /*if (voltCorTime != 0)
-            printf(">TVc:%f\n", voltCorTime);*/
+        // Dar oprotunidad a la tarea de ángulo ejecutarse:
+        vTaskDelay(FACTOR_ESPERA);
+
+        // Tomar llave de escritura de datos para P.A y P.R:
+        xSemaphoreTake(xWriteAngle, (TickType_t)FACTOR_ESPERA);
+        //Tiempo para actualizar datos.
+        vTaskDelay(1);
+        //Esperar a que la tarea de Ángulo termine de procesar los datos:
+        while (eTaskGetState(xTaskAngle) != eSuspended)
+            vTaskDelay(FACTOR_ESPERA);
+        //Guardar valor del Ángulo:
+        pxADCParameters->dcorteRefVt = voltCorTime;
+
+        //Finalizar Tarea:
         ESP_LOGI(TAG, "Fin Cor V");
+        // Decidir si cerder o activar la escritura de datos:
+        if (uxSemaphoreGetCount(xWriteAngle) == 1)
+        {
+            // Ceder llave:
+            xSemaphoreGive(xWriteAngle);
+            //Activar tarea de ángulo:
+            vTaskResume(xTaskAngle);
+        }
+        else xSemaphoreGive(xWriteAngle);
         // Suspender:
         vTaskSuspend(NULL);
     }
