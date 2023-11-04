@@ -88,8 +88,8 @@ extern SemaphoreHandle_t xPower1; // Semaforo de control para acceder al valor d
 extern SemaphoreHandle_t xPower2; // Semaforo de control para acceder al valor de la corriente maxima.
 extern SemaphoreHandle_t xPower3; // Semaforo de control para acceder al valor del angulo.
 
-extern SemaphoreHandle_t xValueCor;       // Semaforo para controlar la modificación del tiempo en Cor.
-extern SemaphoreHandle_t xValueVolt;      // Semaforo para controlar la modificación del tiempo en Volt.
+extern SemaphoreHandle_t xValueCor;  // Semaforo para controlar la modificación del tiempo en Cor.
+extern SemaphoreHandle_t xValueVolt; // Semaforo para controlar la modificación del tiempo en Volt.
 
 /**** Configuración de Parametros de tiempo del ADC ****/
 typedef struct ADC_Parameters

@@ -38,7 +38,7 @@ SemaphoreHandle_t xPower1;
 SemaphoreHandle_t xPower2;
 SemaphoreHandle_t xPower3;
 
-//Regulador de modifición de los arreglos de Volt y Cor. Están cruzados:
+// Regulador de modifición de los arreglos de Volt y Cor. Están cruzados:
 SemaphoreHandle_t xValueCor;
 SemaphoreHandle_t xValueVolt;
 
