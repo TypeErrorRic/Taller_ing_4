@@ -11,6 +11,8 @@ TaskHandle_t xTaskAngle;
 static void calculateAngle(void *pvArguments)
 {
     double angle = 0;
+    double auxAngle = 0;
+    double contador = 0;
     xADCParameters *pxParameters;
     pxParameters = (xADCParameters *)pvArguments;
     // Suspender sistema
@@ -19,14 +21,35 @@ static void calculateAngle(void *pvArguments)
     for (;;)
     {
         // Calcular el angulo:
-        angle = (pxParameters->dcorteRefVt - pxParameters->dcorteRefIt) * 360 * FRECUENCIA_SENAL;
+        for (unsigned short i = 0; i < 2; i++)
+        {
+            auxAngle = (pxParameters->dcorteRefVt[i] - pxParameters->dcorteRefIt[i]) * 360 * FRECUENCIA_SENAL;
+            if (auxAngle > 0 && auxAngle > 90)
+                ESP_LOGE(TAG, "Ángulo fuera del limite Mayor.");
+            else if (auxAngle < 0 && auxAngle < 90)
+                ESP_LOGE(TAG, "Ángulo fuera del limite Menor.");
+            else if (auxAngle == 0)
+                ESP_LOGE(TAG, "No se tomo la medida.");
+            else
+            {
+                angle += auxAngle;
+                contador++;
+            }
+            pxParameters->dcorteRefVt[i] = 0;
+            pxParameters->dcorteRefIt[i] = 0;
+        }
         xSemaphoreTake(xPower3, (TickType_t)portMAX_DELAY);
-        pxParameters->dAngle = angle;
+        if (contador != 0)
+            pxParameters->dAngle = (angle / contador);
+        else
+            pxParameters->dAngle = 0;
+        contador = 0;
+        angle = 0;
         xSemaphoreGive(xPower3);
         // Prueba
-        printf(">A:%f\n", pxParameters->dcorteRefVt);
-        printf(">A:%f\n", pxParameters->dcorteRefIt);
-        printf(">A:%f\n", angle);
+        printf(">A:%f\n", pxParameters->dcorteRefVt[0]);
+        printf(">A:%f\n", pxParameters->dcorteRefIt[0]);
+        printf(">A:%f\n", pxParameters->dAngle);
         ESP_LOGI(TAG, "Fin Angle");
         // Suspender sistema
         vTaskSuspend(NULL);

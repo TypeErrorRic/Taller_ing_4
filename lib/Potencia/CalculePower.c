@@ -1,4 +1,4 @@
-#include <ADC.h>
+#include <Power.h>
 #include <math.h>
 #define PI 3.141592
 
@@ -87,4 +87,9 @@ void setupTaskCalculePower()
     taskReactivePower.uxPriority = 5; // Configurar la prioriodad.
     taskReactivePower.pvCreatedTask = &xTaskReactivePower;
     taskReactivePower.iCore = 0;
+}
+
+void initElementsPower()
+{
+    setupTaskCalculePower();
 }

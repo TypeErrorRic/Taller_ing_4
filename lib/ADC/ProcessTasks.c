@@ -155,8 +155,11 @@ void setupTaskProcessADCs()
     // Inicializar variables:
     pxADCParameters->dVmax = 0;
     pxADCParameters->dImax = 0;
-    pxADCParameters->dcorteRefVt = 0;
-    pxADCParameters->dcorteRefIt = 0;
+    for (short i = 0; i < 2; i++)
+    {
+        pxADCParameters->dcorteRefVt[i] = 0;
+        pxADCParameters->dcorteRefIt[i] = 0;
+    }
     pxADCParameters->dAngle = 0;
 
     // Definir la Tarea para el Procesamiento de la Señal de Corriente:

@@ -77,7 +77,6 @@ void initElementsADCs()
   setupTaskCalculeProcess();
   setupTaskCalculeCorProcess();
   setupTaskCalculeAngle();
-  setupTaskCalculePower();
   // Configuración de timers:
   init_timers();
 }

@@ -10,6 +10,7 @@
 
 //Librerías privadas creadas:
 #include <ADC.h>
+#include <Power.h>
 
 // Función para inicializar el microcontrolador.
 esp_err_t initDrivers(void);

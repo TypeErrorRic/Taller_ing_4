@@ -35,5 +35,7 @@ esp_err_t initDrivers()
     static const char *TAG = "Init";
     initElementsADCs();
     ESP_LOGI(TAG, "ADC Inicializado.");
+    initElementsPower();
+    ESP_LOGI(TAG, "Power elements Inicializados.");
     return ESP_OK;
 }

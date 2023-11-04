@@ -20,7 +20,7 @@
 
 /*--------------- Configuración del ADC ----------------*/
 
-#define FRECUENCIA 10      // Frecuencia de Muestreo 900/600/300
+#define FRECUENCIA 900       // Frecuencia de Muestreo 900/600/300
 #define FRECUENCIA_SENAL 60 // Frecuencia original de la señal a muestrear en hz.
 
 #define ADC_CHANNEL1 ADC1_CHANNEL_0 // Canal de ADC1
@@ -89,11 +89,11 @@ typedef struct ADC_Parameters
 {
     xCaptureParameters *pxdata; // Datos de la captura del ADC.
 
-    double dVmax;       // Valor maximo del Voltaje.
-    double dImax;       // Valor Maximo de la corriente.
-    double dcorteRefVt; // Punto de corte con el nivel de referencia del voltaje.
-    double dcorteRefIt; // Punto de corte con el nivel de referencia de la corriente.
-    double dAngle;      // Angulo desfase entre la corriente y el voltaje.
+    double dVmax;          // Valor maximo del Voltaje.
+    double dImax;          // Valor Maximo de la corriente.
+    double dcorteRefVt[2]; // Punto de corte con el nivel de referencia del voltaje.
+    double dcorteRefIt[2]; // Punto de corte con el nivel de referencia de la corriente.
+    double dAngle;         // Angulo desfase entre la corriente y el voltaje.
 } xADCParameters;
 
 extern xADCParameters *pxADCParameters; // Estructua creada.
@@ -132,13 +132,11 @@ void setupTaskCalculeAngle();
 // Manejador de la tarea:
 extern TaskHandle_t xTaskAngle;
 
-// Inicialización de la tarea de calculo de la potencia activa:
-void setupTaskCalculePower();
-// Manejadores de la tarea:
-extern TaskHandle_t xTaskActivePower;
-extern TaskHandle_t xTaskReactivePower;
-
 /****************** Inicializar ADCs ******************/
 void initElementsADCs();
 
 #endif
+
+/**
+ * @note No poner frecuencias alrededor de 100, el sistema se daña :(.
+ */
