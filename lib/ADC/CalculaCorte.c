@@ -21,8 +21,11 @@ static void vCorrCor(void *pvArguments)
     double preValue = 0;
     double actualTime = 0;
     double preTime = 0;
-    double corCorValues[2] = {0, 0};
+    double corCorValues[NUM_LN_ONDA];
+    for (unsigned short i = 0; i < NUM_LN_ONDA; i++)
+        corCorValues[NUM_LN_ONDA] = 0;
     unsigned short contador = 0;
+    unsigned short muestraTomadas; // Unícamente para debug.
     // Inicializar Parametros:
     xADCParameters *pxParameters;
     pxParameters = (xADCParameters *)pvArguments;
@@ -38,6 +41,10 @@ static void vCorrCor(void *pvArguments)
         // Sección critica de lectura de datos:
         if (uxSemaphoreGetCount(xReadCount1) == 1)
             xSemaphoreTake(xWriteProcessMutex1, (TickType_t)FACTOR_ESPERA);
+
+        //Esperar a que se hayan procesado los arreglos en ambos nucleos:
+        xSemaphoreTake(xValueVolt, (TickType_t)portMAX_DELAY);
+        vTaskDelay(FACTOR_ESPERA);
         // Leer los datos del arreglo para obtener los valores maximos:
         for (unsigned short i = 1; i < QUEUE_LENGTH; i++)
         {
@@ -49,7 +56,7 @@ static void vCorrCor(void *pvArguments)
                 // Aprovechar el cambio de vencidad entre muestras:
                 if ((actualValue * preValue) < 0)
                 {
-                    if (contador < 2)
+                    if (contador < NUM_LN_ONDA)
                     {
                         // Valores para realizar el cálculo:
                         actualTime = (pxParameters->pxdata)->listT_I[i];
@@ -62,7 +69,7 @@ static void vCorrCor(void *pvArguments)
                     else
                         break;
                 }
-                // Si en las muestras no hay 2 puntos de corte no pasa nada, se toma con solo uno.
+                muestraTomadas++;
             }
         }
         // Decidir si cerder o activar la escritura de datos:
@@ -70,6 +77,9 @@ static void vCorrCor(void *pvArguments)
             xSemaphoreGive(xWriteProcessMutex1);
         // Ceder llave:
         xSemaphoreGive(xReadCount1);
+
+        // Activar la Modificación de los arreglos en Volt:
+        xSemaphoreGive(xValueVolt);
         // Dar oprotunidad a la tarea de ángulo ejecutarse:
         vTaskDelay(FACTOR_ESPERA);
 
@@ -82,11 +92,13 @@ static void vCorrCor(void *pvArguments)
             vTaskDelay(FACTOR_ESPERA);
 
         // Reiniciar Varaibles de Cálculo y guardar datos:
-        pxADCParameters->dcorteRefIt[0] = corCorValues[0];
-        pxADCParameters->dcorteRefIt[1] = corCorValues[1];
-        corCorValues[0] = 0;
-        corCorValues[1] = 0;
+        for (unsigned short i = 0; i < NUM_LN_ONDA; i++)
+        {
+            pxADCParameters->dcorteRefIt[i] = corCorValues[i];
+            corCorValues[i] = 0;
+        }
         contador = 0;
+        muestraTomadas = 0;
 
         // Finalizar Tarea:
         ESP_LOGI(TAG, "Fin Cor I");
@@ -112,8 +124,11 @@ static void vVoltCor(void *pvArguments)
     double preValue = 0;
     double actualTime = 0;
     double preTime = 0;
-    double voltCorValues[2] = {0, 0};
+    double voltCorValues[NUM_LN_ONDA];
+    for (unsigned short i = 0; i < NUM_LN_ONDA; i++)
+        voltCorValues[NUM_LN_ONDA] = 0;
     unsigned short contador = 0;
+    unsigned short muestraTomadas; // Unícamente para debug.
     // Inicializar Parametros:
     xADCParameters *pxParameters;
     pxParameters = (xADCParameters *)pvArguments;
@@ -129,6 +144,11 @@ static void vVoltCor(void *pvArguments)
         // Sección critica de lectura de datos:
         if (uxSemaphoreGetCount(xReadCount2) == 1)
             xSemaphoreTake(xWriteProcessMutex2, (TickType_t)FACTOR_ESPERA);
+
+        //Esperar a que se hayan procesado los arreglos en ambos nucleos:
+        xSemaphoreTake(xValueCor, (TickType_t)portMAX_DELAY);
+        vTaskDelay(FACTOR_ESPERA);
+        // Bloquear tareas de procesamiento en ambos nucleos:
         for (unsigned short i = 1; i < QUEUE_LENGTH; i++)
         {
             // Capturar el dato de corte:
@@ -139,7 +159,7 @@ static void vVoltCor(void *pvArguments)
                 // Aprovechar el cambio de vencidad entre muestras:
                 if ((actualValue * preValue) < 0)
                 {
-                    if (contador < 2)
+                    if (contador < NUM_LN_ONDA)
                     {
                         // Valores para realizar el cálculo:
                         actualTime = (pxParameters->pxdata)->listT_V[i];
@@ -152,7 +172,7 @@ static void vVoltCor(void *pvArguments)
                     else
                         break;
                 }
-                // Si en las muestras no hay 2 puntos de corte no pasa nada, se toma con solo uno.
+                muestraTomadas++;
             }
             else
                 break;
@@ -162,6 +182,9 @@ static void vVoltCor(void *pvArguments)
             xSemaphoreGive(xWriteProcessMutex2);
         // Ceder llave:
         xSemaphoreGive(xReadCount2);
+
+        // Decidir si activar la Modificación de los arreglos de Cor:
+        xSemaphoreGive(xValueCor);
         // Dar oprotunidad a la tarea de ángulo ejecutarse:
         vTaskDelay(FACTOR_ESPERA);
 
@@ -174,11 +197,13 @@ static void vVoltCor(void *pvArguments)
             vTaskDelay(FACTOR_ESPERA);
 
         // Reiniciar Varaibles de Cálculo y guardar datos:
-        pxADCParameters->dcorteRefVt[0] = voltCorValues[0];
-        pxADCParameters->dcorteRefVt[1] = voltCorValues[1];
-        voltCorValues[0] = 0;
-        voltCorValues[1] = 0;
+        for (unsigned short i = 0; i < NUM_LN_ONDA; i++)
+        {
+            pxADCParameters->dcorteRefVt[i] = voltCorValues[i];
+            voltCorValues[i] = 0;
+        }
         contador = 0;
+        muestraTomadas = 0;
 
         // Finalizar Tarea:
         ESP_LOGI(TAG, "Fin Cor V");

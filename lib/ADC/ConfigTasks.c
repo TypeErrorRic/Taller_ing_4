@@ -38,6 +38,10 @@ SemaphoreHandle_t xPower1;
 SemaphoreHandle_t xPower2;
 SemaphoreHandle_t xPower3;
 
+//Regulador de modifición de los arreglos de Volt y Cor. Están cruzados:
+SemaphoreHandle_t xValueCor;
+SemaphoreHandle_t xValueVolt;
+
 // Inicializar Tareas de captura:
 void initTask()
 {
@@ -65,6 +69,9 @@ void initTask()
   xPower1 = xSemaphoreCreateMutex();
   xPower2 = xSemaphoreCreateMutex();
   xPower3 = xSemaphoreCreateMutex();
+  // Crea un semaforo contador para controlar la modificación de los arreglos Cor Y Volt:
+  xValueCor = xSemaphoreCreateMutex();
+  xValueVolt = xSemaphoreCreateMutex();
 }
 
 // Función con las llamadas requeridas para realizar la configuración de los ADCs.

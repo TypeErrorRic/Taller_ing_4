@@ -21,23 +21,33 @@ static void calculateAngle(void *pvArguments)
     for (;;)
     {
         // Calcular el angulo:
-        for (unsigned short i = 0; i < 2; i++)
+        for (unsigned short i = 0; i < NUM_LN_ONDA; i++)
         {
-            auxAngle = (pxParameters->dcorteRefVt[i] - pxParameters->dcorteRefIt[i]) * 360 * FRECUENCIA_SENAL;
-            if (auxAngle > 0 && auxAngle > 90)
-                ESP_LOGE(TAG, "Ángulo fuera del limite Mayor.");
-            else if (auxAngle < 0 && auxAngle < 90)
-                ESP_LOGE(TAG, "Ángulo fuera del limite Menor.");
-            else if (auxAngle == 0)
-                ESP_LOGE(TAG, "No se tomo la medida.");
+            if ((pxParameters->dcorteRefIt[i] == 0) || (pxParameters->dcorteRefVt[i] == 0))
+            {
+                ESP_LOGW(TAG, "No se tomo la medida.");
+            }
             else
             {
-                angle += auxAngle;
+                auxAngle = (pxParameters->dcorteRefVt[i] - pxParameters->dcorteRefIt[i]) * 360 * FRECUENCIA_SENAL;
+                if (auxAngle > 90)
+                {
+                    ESP_LOGE(TAG, "Ángulo fuera del limite Mayor.");
+                    auxAngle += 90;
+                }
+                else if (auxAngle < -90)
+                {
+                    ESP_LOGE(TAG, "Ángulo fuera del limite Menor.");
+                    auxAngle -= 90;
+                }
+                else
+                {
+                    angle += auxAngle;
+                }
                 contador++;
             }
-            pxParameters->dcorteRefVt[i] = 0;
-            pxParameters->dcorteRefIt[i] = 0;
         }
+        // Guardar el Valor:
         xSemaphoreTake(xPower3, (TickType_t)portMAX_DELAY);
         if (contador != 0)
             pxParameters->dAngle = (angle / contador);

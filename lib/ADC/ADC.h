@@ -20,7 +20,7 @@
 
 /*--------------- Configuración del ADC ----------------*/
 
-#define FRECUENCIA 900       // Frecuencia de Muestreo 900/600/300
+#define FRECUENCIA 900      // Frecuencia de Muestreo 900/600/300
 #define FRECUENCIA_SENAL 60 // Frecuencia original de la señal a muestrear en hz.
 
 #define ADC_CHANNEL1 ADC1_CHANNEL_0 // Canal de ADC1
@@ -28,8 +28,12 @@
 
 #define RESOLUTION 1000000 // 1MHz, 1 tick = 1us Resolución del timer de WALL-CLOCK
 
+#define NUM_LN_ONDA 3 // Número de longitudes de onda Tomadas.
+
+/*--------------- Definiciones del ADC ----------------*/
+
 // Definir el tamaño de la cola:
-#define QUEUE_LENGTH (FRECUENCIA >= 300 ? (((unsigned int)FRECUENCIA / FRECUENCIA_SENAL) * 2) : 10)
+#define QUEUE_LENGTH (FRECUENCIA >= 300 ? (((unsigned int)FRECUENCIA / FRECUENCIA_SENAL) * NUM_LN_ONDA) : 10)
 
 // Pin GPIO para el LED incorporado en el ESP32 DevKit
 #define LED_PIN GPIO_NUM_2
@@ -84,16 +88,19 @@ extern SemaphoreHandle_t xPower1; // Semaforo de control para acceder al valor d
 extern SemaphoreHandle_t xPower2; // Semaforo de control para acceder al valor de la corriente maxima.
 extern SemaphoreHandle_t xPower3; // Semaforo de control para acceder al valor del angulo.
 
+extern SemaphoreHandle_t xValueCor;       // Semaforo para controlar la modificación del tiempo en Cor.
+extern SemaphoreHandle_t xValueVolt;      // Semaforo para controlar la modificación del tiempo en Volt.
+
 /**** Configuración de Parametros de tiempo del ADC ****/
 typedef struct ADC_Parameters
 {
     xCaptureParameters *pxdata; // Datos de la captura del ADC.
 
-    double dVmax;          // Valor maximo del Voltaje.
-    double dImax;          // Valor Maximo de la corriente.
-    double dcorteRefVt[2]; // Punto de corte con el nivel de referencia del voltaje.
-    double dcorteRefIt[2]; // Punto de corte con el nivel de referencia de la corriente.
-    double dAngle;         // Angulo desfase entre la corriente y el voltaje.
+    double dVmax;                    // Valor maximo del Voltaje.
+    double dImax;                    // Valor Maximo de la corriente.
+    double dcorteRefVt[NUM_LN_ONDA]; // Punto de corte con el nivel de referencia del voltaje.
+    double dcorteRefIt[NUM_LN_ONDA]; // Punto de corte con el nivel de referencia de la corriente.
+    double dAngle;                   // Angulo desfase entre la corriente y el voltaje.
 } xADCParameters;
 
 extern xADCParameters *pxADCParameters; // Estructua creada.
@@ -136,7 +143,3 @@ extern TaskHandle_t xTaskAngle;
 void initElementsADCs();
 
 #endif
-
-/**
- * @note No poner frecuencias alrededor de 100, el sistema se daña :(.
- */

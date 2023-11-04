@@ -47,6 +47,8 @@ static void vCorrienteProcess(void *pvParameters)
         // Tomar las LLaves para para leer / escribir en el arreglo:
         xSemaphoreTake(xMutexProcess1, portMAX_DELAY);
         xSemaphoreTake(xWriteProcessMutex1, (TickType_t)FACTOR_ESPERA);
+        // Tomar LLave para modificar el arreglo de tiempo:
+        xSemaphoreTake(xValueCor, (TickType_t)FACTOR_ESPERA);
         // Capturar el instante en el que se empezo a realizar la captura:
         xQueueReceive(time1_RTOS, &timeSeconds, (TickType_t)0);
         // Copiar los datos a un arreglo para trasnferirlo a las tareas de Calculo.
@@ -68,9 +70,10 @@ static void vCorrienteProcess(void *pvParameters)
             vTaskDelay(FACTOR_ESPERA);
         while (eTaskGetState(xTaskCorrCorI) != eSuspended)
             vTaskDelay(FACTOR_ESPERA);
-        // Liberar llaves:
-        xSemaphoreGive(xWriteProcessMutex1); // Activar la lectura de datos:
-        xSemaphoreGive(xMutexProcess1);      // Activar de nuevo la captura de datos:
+        // Liberar llave para inicializar Captura:
+        xSemaphoreGive(xMutexProcess1);      // Habilitar de nuevo la captura de datos.
+        xSemaphoreGive(xWriteProcessMutex1); // Habilitar la lectura de datos.
+        xSemaphoreGive(xValueCor);           // Habilitar lectura de arreglos de tiempo.
         // Finalizar procesamiento de datos:
         ESP_LOGI(TAG, "Captura I Completa");
         // Activar tareas:
@@ -98,9 +101,11 @@ static void vVoltajeProcess(void *pvParameters)
     // Bucle Principal:
     for (;;)
     {
-        // Tomar las LLave:
+        // Tomar las LLaves para para leer / escribir en el arreglo:
         xSemaphoreTake(xMutexProcess2, portMAX_DELAY);
         xSemaphoreTake(xWriteProcessMutex2, (TickType_t)FACTOR_ESPERA);
+        // Tomar LLave para modificar el arreglo de tiempo:
+        xSemaphoreTake(xValueVolt, (TickType_t)FACTOR_ESPERA);
         // Capturar el instante en el que se empezo a realizar la captura:
         xQueueReceive(time2_RTOS, &timeSeconds, (TickType_t)0);
         // Copiar los datos a un arreglo para trasnferirlo a las tareas de Calculo.
@@ -122,9 +127,10 @@ static void vVoltajeProcess(void *pvParameters)
             vTaskDelay(FACTOR_ESPERA);
         while (eTaskGetState(xTaskVoltCorV) != eSuspended)
             vTaskDelay(FACTOR_ESPERA);
-        // Liberar llaves:
-        xSemaphoreGive(xMutexProcess2);      // Activar de nuevo la captura de datos:
-        xSemaphoreGive(xWriteProcessMutex2); // Activar la lectura de datos:
+        // Liberar llave para inicializar Captura:
+        xSemaphoreGive(xMutexProcess2);      // Habilitar de nuevo la captura de datos.
+        xSemaphoreGive(xWriteProcessMutex2); // Habilitar la lectura de datos.
+        xSemaphoreGive(xValueVolt);          // Habilitar lectura de arreglos de tiempo.
         // Finalizar procesamiento de datos:
         ESP_LOGI(TAG, "Captura v Completa");
         // Activar Tareas:

@@ -22,6 +22,7 @@ typedef struct
     
 } taskDefinition;
 
+// El valor de factor de espera puede estar entre 5 y 10.
 #define FACTOR_ESPERA 5
 
 #endif
