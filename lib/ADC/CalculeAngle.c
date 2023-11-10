@@ -61,6 +61,7 @@ static void calculateAngle(void *pvArguments)
                     }
                     else
                     {
+                        //Verificar que hayan la misma cantidad de cortes y que el ángulo sea menor a BALANCE.
                         if ((pxParameters->usNumMI == pxParameters->usNumMV) && (auxAngle < BALANCE))
                             angle = 90;
                         else
@@ -88,6 +89,7 @@ static void calculateAngle(void *pvArguments)
                     }
                     else
                     {
+                        //Verificar que hayan la misma cantidad de cortes y que el ángulo sea menor a BALANCE.
                         if ((pxParameters->usNumMI == pxParameters->usNumMV) && (auxAngle > -BALANCE))
                             angle = -90;
                         else
@@ -103,9 +105,11 @@ static void calculateAngle(void *pvArguments)
         }
         // Guardar el Valor:
         xSemaphoreTake(xPower3, (TickType_t)portMAX_DELAY);
+        //Guardar valores para cuando contador es diferente a 0:
         if ((contador != 0) && !((angle == 90) || (angle == -90)))
         {
             currentValue = (angle / contador);
+            //Guardar el valor y activar la correción de ángulo.
             if (flagCorrect == 0x00)
             {
                 pxParameters->dAngle = currentValue;
@@ -114,6 +118,7 @@ static void calculateAngle(void *pvArguments)
             }
             else
             {
+                //Verificar la correción de ángulo.
                 if ((((preValue + DESFASE_NUM) < currentValue) && ((preValue - DESFASE_NUM) > currentValue)))
                 {
                     pxParameters->dAngle = currentValue;
@@ -121,16 +126,20 @@ static void calculateAngle(void *pvArguments)
                 }
                 else
                 {
+                    //Salir con error si no son iguales:
                     if (ready == 0x01)
                         ESP_LOGE(TAG, "Medida no valida");
+                    pxParameters->dAngle = 0;
                 }
             }
         }
+        //Si ángulo son iguales a 90 o -90 guardar y modificar prevalue:
         else if ((angle == 90) || (angle == -90))
         {
             pxParameters->dAngle = angle;
             preValue = angle;
         }
+        //Salir con error:
         else
         {
             pxParameters->dAngle = 0;
