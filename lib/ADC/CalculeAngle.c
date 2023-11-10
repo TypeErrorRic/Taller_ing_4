@@ -45,7 +45,7 @@ static void calculateAngle(void *pvArguments)
                     if ((auxAngle > BALANCE) && (contador == 0) && (pxParameters->usNumMI == pxParameters->usNumMV))
                     {
                         ESP_LOGW(TAG, "Corregir angulo Mayor.");
-                        if (ready == 0x01)
+                        if ((ready == 0x01) && (pxParameters->usNumMI == NUM_LN_ONDA))
                         {
                             flagCorrect = 0x01;
                             // Se corre para que de negativo: desfase cercano a - 180 grados.
@@ -73,7 +73,7 @@ static void calculateAngle(void *pvArguments)
                     if ((auxAngle < -BALANCE) && (contador == 0) && (pxParameters->usNumMI == pxParameters->usNumMV))
                     {
                         ESP_LOGW(TAG, "Corregir angulo Menor");
-                        if (ready == 0x01)
+                        if ((ready == 0x01) && (pxParameters->usNumMI == NUM_LN_ONDA))
                         {
                             flagCorrect = 0x01;
                             // Se corre para que de Positivo: desfase cercano a + 180 grados.
