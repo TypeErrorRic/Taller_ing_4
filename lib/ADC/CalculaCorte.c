@@ -1,6 +1,7 @@
 #include <ADC.h>
 
 static const char *TAG = "Cor Value";
+//Lo mejor es ubicarlo en el nivel de referencia:
 #define REF_VALUE (float)1.75
 
 // Definición de las Tareas:
@@ -25,7 +26,7 @@ static void vCorrCor(void *pvArguments)
     for (unsigned short i = 0; i < NUM_LN_ONDA; i++)
         corCorValues[NUM_LN_ONDA] = 0;
     unsigned short contador = 0;
-    unsigned short muestraTomadas; // Unícamente para debug.
+    unsigned short muestraTomadas;
     // Inicializar Parametros:
     xADCParameters *pxParameters;
     pxParameters = (xADCParameters *)pvArguments;
@@ -42,7 +43,7 @@ static void vCorrCor(void *pvArguments)
         if (uxSemaphoreGetCount(xReadCount1) == 1)
             xSemaphoreTake(xWriteProcessMutex1, (TickType_t)FACTOR_ESPERA);
 
-        //Esperar a que se hayan procesado los arreglos en ambos nucleos:
+        // Esperar a que se hayan procesado los arreglos en ambos nucleos:
         xSemaphoreTake(xValueVolt, (TickType_t)portMAX_DELAY);
         vTaskDelay(FACTOR_ESPERA);
         // Leer los datos del arreglo para obtener los valores maximos:
@@ -97,6 +98,7 @@ static void vCorrCor(void *pvArguments)
             pxADCParameters->dcorteRefIt[i] = corCorValues[i];
             corCorValues[i] = 0;
         }
+        pxParameters->usNumMI = contador;
         contador = 0;
         muestraTomadas = 0;
 
@@ -128,7 +130,7 @@ static void vVoltCor(void *pvArguments)
     for (unsigned short i = 0; i < NUM_LN_ONDA; i++)
         voltCorValues[NUM_LN_ONDA] = 0;
     unsigned short contador = 0;
-    unsigned short muestraTomadas; // Unícamente para debug.
+    unsigned short muestraTomadas;
     // Inicializar Parametros:
     xADCParameters *pxParameters;
     pxParameters = (xADCParameters *)pvArguments;
@@ -145,7 +147,7 @@ static void vVoltCor(void *pvArguments)
         if (uxSemaphoreGetCount(xReadCount2) == 1)
             xSemaphoreTake(xWriteProcessMutex2, (TickType_t)FACTOR_ESPERA);
 
-        //Esperar a que se hayan procesado los arreglos en ambos nucleos:
+        // Esperar a que se hayan procesado los arreglos en ambos nucleos:
         xSemaphoreTake(xValueCor, (TickType_t)portMAX_DELAY);
         vTaskDelay(FACTOR_ESPERA);
         // Bloquear tareas de procesamiento en ambos nucleos:
@@ -202,6 +204,7 @@ static void vVoltCor(void *pvArguments)
             pxADCParameters->dcorteRefVt[i] = voltCorValues[i];
             voltCorValues[i] = 0;
         }
+        pxParameters->usNumMV = contador;
         contador = 0;
         muestraTomadas = 0;
 

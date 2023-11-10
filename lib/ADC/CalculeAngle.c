@@ -8,11 +8,21 @@ taskDefinition taskAngle;
 // Manejadores de las tareas:
 TaskHandle_t xTaskAngle;
 
+// Macros de control de cálculo del ángulo:
+#define DESFASE_NUM 3
+#define BALANCE 90 + DESFASE_NUM
+
 static void calculateAngle(void *pvArguments)
 {
+    // Variables para calcular el ángulo:
     double angle = 0;
     double auxAngle = 0;
     double contador = 0;
+    // Valores para controlar el flujo de acceso:
+    double preValue = 0;
+    double currentValue = 0;
+    unsigned char flagCorrect = 0x00;
+    unsigned char ready = 0x00;
     xADCParameters *pxParameters;
     pxParameters = (xADCParameters *)pvArguments;
     // Suspender sistema
@@ -32,13 +42,57 @@ static void calculateAngle(void *pvArguments)
                 auxAngle = (pxParameters->dcorteRefVt[i] - pxParameters->dcorteRefIt[i]) * 360 * FRECUENCIA_SENAL;
                 if (auxAngle > 90)
                 {
-                    ESP_LOGE(TAG, "Ángulo fuera del limite Mayor.");
-                    auxAngle += 90;
+                    if ((auxAngle > BALANCE) && (contador == 0) && (pxParameters->usNumMI == pxParameters->usNumMV))
+                    {
+                        ESP_LOGW(TAG, "Corregir angulo Mayor.");
+                        if (ready == 0x01)
+                        {
+                            flagCorrect = 0x01;
+                            // Se corre para que de negativo: desfase cercano a - 180 grados.
+                            for (unsigned short i = 0; i < (NUM_LN_ONDA - 1); i++)
+                            {
+                                angle += (pxParameters->dcorteRefVt[i] - pxParameters->dcorteRefIt[i + 1]) * 360 * FRECUENCIA_SENAL;
+                                contador++;
+                            }
+                            break;
+                        }
+                        else
+                            break;
+                    }
+                    else
+                    {
+                        if ((pxParameters->usNumMI == pxParameters->usNumMV) && (auxAngle < BALANCE))
+                            angle = 90;
+                        else
+                            break;
+                    }
                 }
                 else if (auxAngle < -90)
                 {
-                    ESP_LOGE(TAG, "Ángulo fuera del limite Menor.");
-                    auxAngle -= 90;
+                    if ((auxAngle < -BALANCE) && (contador == 0) && (pxParameters->usNumMI == pxParameters->usNumMV))
+                    {
+                        ESP_LOGW(TAG, "Corregir angulo Menor");
+                        if (ready == 0x01)
+                        {
+                            flagCorrect = 0x01;
+                            // Se corre para que de Positivo: desfase cercano a + 180 grados.
+                            for (unsigned short i = 0; i < (NUM_LN_ONDA - 1); i++)
+                            {
+                                angle += (pxParameters->dcorteRefVt[i + 1] - pxParameters->dcorteRefIt[i]) * 360 * FRECUENCIA_SENAL;
+                                contador++;
+                            }
+                            break;
+                        }
+                        else
+                            break;
+                    }
+                    else
+                    {
+                        if ((pxParameters->usNumMI == pxParameters->usNumMV) && (auxAngle > -BALANCE))
+                            angle = -90;
+                        else
+                            break;
+                    }
                 }
                 else
                 {
@@ -49,19 +103,54 @@ static void calculateAngle(void *pvArguments)
         }
         // Guardar el Valor:
         xSemaphoreTake(xPower3, (TickType_t)portMAX_DELAY);
-        if (contador != 0)
-            pxParameters->dAngle = (angle / contador);
+        if ((contador != 0) && !((angle == 90) || (angle == -90)))
+        {
+            currentValue = (angle / contador);
+            if (flagCorrect == 0x00)
+            {
+                pxParameters->dAngle = currentValue;
+                preValue = currentValue;
+                ready = 0x01;
+            }
+            else
+            {
+                if ((((preValue + DESFASE_NUM) < currentValue) && ((preValue - DESFASE_NUM) > currentValue)))
+                {
+                    pxParameters->dAngle = currentValue;
+                    preValue = currentValue;
+                }
+                else
+                {
+                    if (ready == 0x01)
+                        ESP_LOGE(TAG, "Medida no valida");
+                }
+            }
+        }
+        else if ((angle == 90) || (angle == -90))
+        {
+            pxParameters->dAngle = angle;
+            preValue = angle;
+        }
         else
+        {
             pxParameters->dAngle = 0;
+            if (ready == 0x01)
+                ESP_LOGE(TAG, "Medida no valida");
+        }
+        // Reiniciar variables:
         contador = 0;
         angle = 0;
+        flagCorrect = 0x00;
+        currentValue = 0;
+        // Entregar llave:
         xSemaphoreGive(xPower3);
+
         // Prueba
         printf(">A:%f\n", pxParameters->dcorteRefVt[0]);
         printf(">A:%f\n", pxParameters->dcorteRefIt[0]);
         printf(">A:%f\n", pxParameters->dAngle);
         ESP_LOGI(TAG, "Fin Angle");
-        // Suspender sistema
+        //  Suspender sistema
         vTaskSuspend(NULL);
     }
 };

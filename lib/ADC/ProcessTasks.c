@@ -167,6 +167,8 @@ void setupTaskProcessADCs()
         pxADCParameters->dcorteRefIt[i] = 0;
     }
     pxADCParameters->dAngle = 0;
+    pxADCParameters->usNumMI = 0;
+    pxADCParameters->usNumMV = 0;
 
     // Definir la Tarea para el Procesamiento de la Señal de Corriente:
     taskADCProcessI.taskId = vCorrienteProcess;

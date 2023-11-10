@@ -101,6 +101,8 @@ typedef struct ADC_Parameters
     double dcorteRefVt[NUM_LN_ONDA]; // Punto de corte con el nivel de referencia del voltaje.
     double dcorteRefIt[NUM_LN_ONDA]; // Punto de corte con el nivel de referencia de la corriente.
     double dAngle;                   // Angulo desfase entre la corriente y el voltaje.
+    unsigned short usNumMI;          // Número de muestras de corte de Corriente.
+    unsigned short usNumMV;          // Número de muestras de corte de Voltaje.
 } xADCParameters;
 
 extern xADCParameters *pxADCParameters; // Estructua creada.
