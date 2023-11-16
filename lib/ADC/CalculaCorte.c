@@ -1,8 +1,8 @@
 #include <ADC.h>
 
 static const char *TAG = "Cor Value";
-//Lo mejor es ubicarlo en el nivel de referencia:
-#define REF_VALUE (float)1.75
+// Lo mejor es ubicarlo en el nivel de referencia:
+#define REF_VALUE (float)0.368
 
 // Definición de las Tareas:
 taskDefinition taskCorrCorI;

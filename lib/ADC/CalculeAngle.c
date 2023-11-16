@@ -30,6 +30,12 @@ static void calculateAngle(void *pvArguments)
     // Bucle principal
     for (;;)
     {
+        if (flagCorrect == 0x01)
+        {
+            flagCorrect = 0x00;
+            //  Suspender sistema
+            vTaskSuspend(NULL);
+        }
         // Calcular el angulo:
         for (unsigned short i = 0; i < NUM_LN_ONDA; i++)
         {
@@ -49,7 +55,7 @@ static void calculateAngle(void *pvArguments)
                         {
                             flagCorrect = 0x01;
                             // Se corre para que de negativo: desfase cercano a - 180 grados.
-                            for (unsigned short i = 0; i < (NUM_LN_ONDA - 1); i++)
+                            for (unsigned short j = 0; j < (NUM_LN_ONDA - 1); j++)
                             {
                                 angle += (pxParameters->dcorteRefVt[i] - pxParameters->dcorteRefIt[i + 1]) * 360 * FRECUENCIA_SENAL;
                                 contador++;
@@ -61,7 +67,7 @@ static void calculateAngle(void *pvArguments)
                     }
                     else
                     {
-                        //Verificar que hayan la misma cantidad de cortes y que el ángulo sea menor a BALANCE.
+                        // Verificar que hayan la misma cantidad de cortes y que el ángulo sea menor a BALANCE.
                         if ((pxParameters->usNumMI == pxParameters->usNumMV) && (auxAngle < BALANCE))
                             angle += 90;
                         else
@@ -77,7 +83,7 @@ static void calculateAngle(void *pvArguments)
                         {
                             flagCorrect = 0x01;
                             // Se corre para que de Positivo: desfase cercano a + 180 grados.
-                            for (unsigned short i = 0; i < (NUM_LN_ONDA - 1); i++)
+                            for (unsigned short j = 0; j < (NUM_LN_ONDA - 1); j++)
                             {
                                 angle += (pxParameters->dcorteRefVt[i + 1] - pxParameters->dcorteRefIt[i]) * 360 * FRECUENCIA_SENAL;
                                 contador++;
@@ -89,7 +95,7 @@ static void calculateAngle(void *pvArguments)
                     }
                     else
                     {
-                        //Verificar que hayan la misma cantidad de cortes y que el ángulo sea menor a BALANCE.
+                        // Verificar que hayan la misma cantidad de cortes y que el ángulo sea menor a BALANCE.
                         if ((pxParameters->usNumMI == pxParameters->usNumMV) && (auxAngle > -BALANCE))
                             angle -= 90;
                         else
@@ -105,11 +111,11 @@ static void calculateAngle(void *pvArguments)
         }
         // Guardar el Valor:
         xSemaphoreTake(xPower3, (TickType_t)portMAX_DELAY);
-        //Guardar valores para cuando contador es diferente a 0:
+        // Guardar valores para cuando contador es diferente a 0:
         if (contador != 0)
         {
             currentValue = (angle / contador);
-            //Guardar el valor y activar la correción de ángulo.
+            // Guardar el valor y activar la correción de ángulo.
             if (flagCorrect == 0x00)
             {
                 pxParameters->dAngle = currentValue;
@@ -118,39 +124,37 @@ static void calculateAngle(void *pvArguments)
             }
             else
             {
-                //Verificar la correción de ángulo.
-                if ((((preValue + DESFASE_NUM) < currentValue) && ((preValue - DESFASE_NUM) > currentValue)))
+                // Verificar la correción de ángulo.
+                if ((((preValue + DESFASE_NUM) > currentValue) && ((preValue - DESFASE_NUM) < currentValue)))
                 {
                     pxParameters->dAngle = currentValue;
                     preValue = currentValue;
                 }
                 else
                 {
-                    //Salir con error si no son iguales:
+                    // Salir con error si no son iguales:
                     if (ready == 0x01)
-                        ESP_LOGE(TAG, "Medida no valida");
+                        ESP_LOGE(TAG, "Medida no valida. IDK");
                     pxParameters->dAngle = 0;
                 }
             }
         }
-        //Salir con error:
+        // Salir con error:
         else
         {
             pxParameters->dAngle = 0;
             if (ready == 0x01)
-                ESP_LOGE(TAG, "Medida no valida");
+                ESP_LOGE(TAG, "Medida no valida. NoT");
         }
         // Reiniciar variables:
         contador = 0;
         angle = 0;
-        flagCorrect = 0x00;
         currentValue = 0;
+        auxAngle = 0;
         // Entregar llave:
         xSemaphoreGive(xPower3);
 
         // Prueba
-        printf(">A:%f\n", pxParameters->dcorteRefVt[0]);
-        printf(">A:%f\n", pxParameters->dcorteRefIt[0]);
         printf(">A:%f\n", pxParameters->dAngle);
         ESP_LOGI(TAG, "Fin Angle");
         //  Suspender sistema

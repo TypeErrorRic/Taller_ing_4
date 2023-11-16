@@ -14,3 +14,4 @@ test/
 build/
 *.gif
 desfasador/
+documentation/*.xlsx

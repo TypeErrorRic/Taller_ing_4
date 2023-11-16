@@ -65,7 +65,7 @@ static void vCorrMaxProcess(void *pvArguments)
         c = maxValue[0] - aux1 * maxTime[0] + a * maxTime[1] * maxTime[0];
         // Valor maximo de corriente:
         maxCor = c - ((b * b) / (4 * a));
-        //printf("Max I: %f\n", maxCor);
+        printf("Max I: %f\n", maxCor);
         // Tomar semaforo para evitar que la tarea de potencia continue:
         xSemaphoreTake(xPower2, (TickType_t)portMAX_DELAY);
         pxParameters->dVmax = maxCor;
@@ -132,7 +132,7 @@ static void vVoltMaxProcess(void *pvArguments)
         // Valor maximo de corriente:
         maxVolt = c - ((b * b) / (4 * a));
         // Tomar semaforo para evitar que la tarea de potencia continue:
-        // printf("Max V: %f\n", maxVolt);
+        printf("Max V: %f\n", maxVolt);
         xSemaphoreTake(xPower1, (TickType_t)portMAX_DELAY);
         pxParameters->dVmax = maxVolt;
         xSemaphoreGive(xPower1);
