@@ -1,8 +1,6 @@
 #include <ADC.h>
 
 static const char *TAG = "Cor Value";
-// Lo mejor es ubicarlo en el nivel de referencia:
-#define REF_VALUE (float)0.368
 
 // Definición de las Tareas:
 taskDefinition taskCorrCorI;
@@ -45,15 +43,15 @@ static void vCorrCor(void *pvArguments)
 
         // Esperar a que se hayan procesado los arreglos en ambos nucleos:
         xSemaphoreTake(xValueVolt, (TickType_t)portMAX_DELAY);
-        vTaskDelay(FACTOR_ESPERA);
+        vTaskDelay(FACTOR_ESPERA * 2);
         // Leer los datos del arreglo para obtener los valores maximos:
         for (unsigned short i = 1; i < QUEUE_LENGTH; i++)
         {
             // Capturar el dato de corte:
             if ((pxParameters->pxdata)->listT_I[i - 1] >= ((pxParameters->pxdata)->listT_V[0] - CORTE))
             {
-                actualValue = (pxParameters->pxdata)->listADC_I[i] - REF_VALUE;
-                preValue = (pxParameters->pxdata)->listADC_I[i - 1] - REF_VALUE;
+                actualValue = (pxParameters->pxdata)->listADC_I[i] - REF_VALUE_CORRIENTE;
+                preValue = (pxParameters->pxdata)->listADC_I[i - 1] - REF_VALUE_CORRIENTE;
                 // Aprovechar el cambio de vencidad entre muestras:
                 if ((actualValue * preValue) < 0)
                 {
@@ -81,8 +79,6 @@ static void vCorrCor(void *pvArguments)
 
         // Activar la Modificación de los arreglos en Volt:
         xSemaphoreGive(xValueVolt);
-        // Dar oprotunidad a la tarea de ángulo ejecutarse:
-        vTaskDelay(FACTOR_ESPERA);
 
         // Tomar llave de escritura de datos para Ángulo:
         xSemaphoreTake(xWriteAngle, (TickType_t)FACTOR_ESPERA);
@@ -149,15 +145,15 @@ static void vVoltCor(void *pvArguments)
 
         // Esperar a que se hayan procesado los arreglos en ambos nucleos:
         xSemaphoreTake(xValueCor, (TickType_t)portMAX_DELAY);
-        vTaskDelay(FACTOR_ESPERA);
+        vTaskDelay(FACTOR_ESPERA * 2);
         // Bloquear tareas de procesamiento en ambos nucleos:
         for (unsigned short i = 1; i < QUEUE_LENGTH; i++)
         {
             // Capturar el dato de corte:
             if ((pxParameters->pxdata)->listT_V[i - 1] <= (pxParameters->pxdata)->listT_I[QUEUE_LENGTH - 1])
             {
-                actualValue = (pxParameters->pxdata)->listADC_V[i] - REF_VALUE;
-                preValue = (pxParameters->pxdata)->listADC_V[i - 1] - REF_VALUE;
+                actualValue = (pxParameters->pxdata)->listADC_V[i] - REF_VALUE_VOLTAJE;
+                preValue = (pxParameters->pxdata)->listADC_V[i - 1] - REF_VALUE_VOLTAJE;
                 // Aprovechar el cambio de vencidad entre muestras:
                 if ((actualValue * preValue) < 0)
                 {
@@ -187,8 +183,6 @@ static void vVoltCor(void *pvArguments)
 
         // Decidir si activar la Modificación de los arreglos de Cor:
         xSemaphoreGive(xValueCor);
-        // Dar oprotunidad a la tarea de ángulo ejecutarse:
-        vTaskDelay(FACTOR_ESPERA);
 
         // Tomar llave de escritura de datos para Ángulo:
         xSemaphoreTake(xWriteAngle, (TickType_t)FACTOR_ESPERA);
@@ -198,7 +192,7 @@ static void vVoltCor(void *pvArguments)
         while (eTaskGetState(xTaskAngle) != eSuspended)
             vTaskDelay(FACTOR_ESPERA);
 
-        // Reiniciar Varaibles de Cálculo y guardar datos:
+        // Reiniciar Variables de Cálculo y guardar datos:
         for (unsigned short i = 0; i < NUM_LN_ONDA; i++)
         {
             pxADCParameters->dcorteRefVt[i] = voltCorValues[i];

@@ -38,6 +38,14 @@
 // Pin GPIO para el LED incorporado en el ESP32 DevKit
 #define LED_PIN GPIO_NUM_2
 
+// Factores de escala para el Voltaje y la corriente
+#define FACTOR_ESCALA_VOLTAJE 1
+#define FACTOR_ESCALA_CORRIENTE 1
+
+// Niveles de referencia para la corriente y el voltaje:
+#define REF_VALUE_CORRIENTE (float)1.75
+#define REF_VALUE_VOLTAJE (float)1.75
+
 // Estructura de captura de datos de los ADCs:
 typedef struct Capture_Parameters
 {
@@ -51,18 +59,20 @@ typedef struct Capture_Parameters
 
 /*----------------------- Core 0 -----------------------*/
 ////Interrupción Asociado a la captura del valor de la Corriente////.
-extern taskDefinition taskADCProcessI;   // Tarea 1 asociada al procesamiento de los datos.
-extern taskDefinition taskCorrMaxI;      // Tarea asociada a la obtención del Imax.
-extern taskDefinition taskCorrCorI;      // Tarea asociada a la obtención del punto de corte de I.
-extern taskDefinition taskAngle;         // Tarea asociada a la obtención del angulo de desfase entre I y V.
-extern taskDefinition taskReactivePower; // Tarea asociada al calculo de la potencia reactiva.
+extern taskDefinition taskADCProcessI; // Tarea 1 asociada al procesamiento de los datos.
+extern taskDefinition taskCorrMaxI;    // Tarea asociada a la obtención del Imax.
+extern taskDefinition taskCorrCorI;    // Tarea asociada a la obtención del punto de corte de I.
+// Tarea de Menor Prioridad en el nucleo:
+extern taskDefinition taskAngle; // Tarea asociada a la obtención del angulo de desfase entre I y V.
 
 /*----------------------- Core 1 -----------------------*/
 ////Interrupción Asociado a la captura del valor del Voltaje////.
 extern taskDefinition taskADCProcessV; // Tarea 2 asociada al procesamiento de los datos.
 extern taskDefinition taskVoltMaxV;    // Tarea asociada a la obtención del Vmax.
 extern taskDefinition taskVoltCorV;    // Tarea asociada a la obtención del punto de corte de V.
-extern taskDefinition taskActivePower; // Tarea asociada al calculo de la potencia activa.
+// Tarea de Menor Prioridad en el nucleo:
+extern taskDefinition taskPower; // Tarea asociada a las salidas del sistema.
+// Tarea de Menor Prioridad en el nucleo:
 
 /**Configuración de estructuras de trasmición de datos**/
 
@@ -73,6 +83,7 @@ extern QueueHandle_t time1_RTOS;     // Valor del instante en que el sistema emp
 extern QueueHandle_t time2_queue;    // Cola con los volores del instante de Captura del Voltaje.
 extern QueueHandle_t time2_RTOS;     // Valor del instante en que el sistema empezo a tomar muestras en relación con el reloj de Freertos.
 extern QueueHandle_t timesAng_queue; // Valores de instantes de tiempos del cruce por referencia del voltaje y la corriente.
+extern QueueHandle_t powerData;      // Buzón para la trasmición de los resultados de la potencia Activa y reactiva.
 
 extern SemaphoreHandle_t xMutexProcess1; // Disparador de Procesamiento de datos core 0.
 extern SemaphoreHandle_t xMutexProcess2; // Disparador de Procesamiento de datos core 1.
@@ -83,10 +94,6 @@ extern SemaphoreHandle_t xReadCount1;         // Semaforo de control de lectura 
 extern SemaphoreHandle_t xReadCount2;         // Semaforo de control de lectura de datos del arreglo en el core 2.
 
 extern SemaphoreHandle_t xWriteAngle; // Semaforo de control de escritura de datos sobre los valores de tiempo de corte.
-
-extern SemaphoreHandle_t xPower1; // Semaforo de control para acceder al valor del voltaje maximo.
-extern SemaphoreHandle_t xPower2; // Semaforo de control para acceder al valor de la corriente maxima.
-extern SemaphoreHandle_t xPower3; // Semaforo de control para acceder al valor del angulo.
 
 extern SemaphoreHandle_t xValueCor;  // Semaforo para controlar la modificación del tiempo en Cor.
 extern SemaphoreHandle_t xValueVolt; // Semaforo para controlar la modificación del tiempo en Volt.
@@ -100,7 +107,6 @@ typedef struct ADC_Parameters
     double dImax;                    // Valor Maximo de la corriente.
     double dcorteRefVt[NUM_LN_ONDA]; // Punto de corte con el nivel de referencia del voltaje.
     double dcorteRefIt[NUM_LN_ONDA]; // Punto de corte con el nivel de referencia de la corriente.
-    double dAngle;                   // Angulo desfase entre la corriente y el voltaje.
     unsigned short usNumMI;          // Número de muestras de corte de Corriente.
     unsigned short usNumMV;          // Número de muestras de corte de Voltaje.
 } xADCParameters;

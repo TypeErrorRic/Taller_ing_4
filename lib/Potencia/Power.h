@@ -3,13 +3,11 @@
 
 #include <ADC.h>
 
-// Inicialización de la tarea de calculo de la potencia activa:
-void setupTaskCalculePower();
-// Manejadores de la tarea:
-extern TaskHandle_t xTaskActivePower;
-extern TaskHandle_t xTaskReactivePower;
+// Indices para inidicar la potencia:
+#define ACTIVE 0
+#define REACTIVE 1
 
-/****************** Inicializar POWER Tasks ******************/
+/****************** Inicializar Power Task ******************/
 void initElementsPower();
 
 #endif

@@ -27,8 +27,7 @@ xADCParameters *pxADCParameters;
 #define DELAY_TIME (FRECUENCIA > 10 ? FACTOR_ESPERA : ((int)1000 / portTICK_PERIOD_MS))
 
 // Definir la Compensación entre los dos Canales.
-#define COMPENSACION_CORRIENTE (float)0.009133 + 0.11
-#define COMPENSACION_VOLTAJE (float)0.18
+#define COMPENSACION_CORRIENTE (float)0.009133
 
 // Implementación de la tarea de procesamiento de los datos del ADC:
 static void vCorrienteProcess(void *pvParameters)
@@ -114,7 +113,7 @@ static void vVoltajeProcess(void *pvParameters)
         {
             if (xQueueReceive(adc2_queue, &adc_value, (TickType_t)0))
             {
-                (pxParameters->pxdata)->listADC_V[i] = (double)(3.3 / 4095) * adc_value + COMPENSACION_VOLTAJE;
+                (pxParameters->pxdata)->listADC_V[i] = (double)(3.3 / 4095) * adc_value;
                 if (xQueueReceive(time2_queue, &time, (TickType_t)0))
                     (pxParameters->pxdata)->listT_V[i] = (timeSeconds + ((double)time / RESOLUTION));
                 else
@@ -167,7 +166,6 @@ void setupTaskProcessADCs()
         pxADCParameters->dcorteRefVt[i] = 0;
         pxADCParameters->dcorteRefIt[i] = 0;
     }
-    pxADCParameters->dAngle = 0;
     pxADCParameters->usNumMI = 0;
     pxADCParameters->usNumMV = 0;
 

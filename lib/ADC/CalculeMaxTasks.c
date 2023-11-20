@@ -1,4 +1,5 @@
 #include <ADC.h>
+#include <math.h>
 
 static const char *TAG = "Max Value";
 
@@ -9,6 +10,10 @@ taskDefinition taskVoltMaxV;
 // Manejadores de las tareas:
 TaskHandle_t xTaskCorrMaxI;
 TaskHandle_t xTaskVoltMaxV;
+
+// Compensación de voltajes con respecto al Osciloscopio:
+#define COMPENSACION_VOLTAJE (float)0.18
+#define COMPENSACION_CORRIENTE (float)0.11
 
 static void vCorrMaxProcess(void *pvArguments)
 {
@@ -30,13 +35,14 @@ static void vCorrMaxProcess(void *pvArguments)
     // Bucle principal
     for (;;)
     {
-        // Tomar Semaforo:
+        // Tomar Semaforo para detener el procesamiento de las tareas de Corriente:
         xSemaphoreTake(xReadCount1, (TickType_t)FACTOR_ESPERA);
         // Tiempo para actualizar datos.
         vTaskDelay(1);
         // Sección critica de lectura de datos:
         if (uxSemaphoreGetCount(xReadCount1) == 1)
             xSemaphoreTake(xWriteProcessMutex1, (TickType_t)FACTOR_ESPERA);
+
         // Leer los datos del arreglo para obtener los valores maximos:
         for (unsigned short i = 1; i < (QUEUE_LENGTH - 1); i++)
         {
@@ -49,6 +55,7 @@ static void vCorrMaxProcess(void *pvArguments)
         maxValue[1] = (pxParameters->pxdata)->listADC_I[maxdirection];
         // Valor después del valor maximo.
         maxValue[2] = (pxParameters->pxdata)->listADC_I[maxdirection + 1];
+
         // Decidir si cerder o activar la escritura de datos:
         if (uxSemaphoreGetCount(xReadCount1) == 1)
             xSemaphoreGive(xWriteProcessMutex1);
@@ -56,6 +63,7 @@ static void vCorrMaxProcess(void *pvArguments)
         xSemaphoreGive(xReadCount1);
         // Dar oprotunidad a la tarea de ángulo ejecutarse:
         vTaskDelay(FACTOR_ESPERA);
+
         // Relacionado con la interpolacion
         aux1 = (maxValue[1] - maxValue[0]) / (maxTime[1] - maxTime[0]);
         aux2 = (maxValue[2] - maxValue[1]) / (maxTime[2] - maxTime[1]);
@@ -64,13 +72,15 @@ static void vCorrMaxProcess(void *pvArguments)
         b = aux1 - a * (maxTime[1] - maxTime[0]);
         c = maxValue[0] - aux1 * maxTime[0] + a * maxTime[1] * maxTime[0];
         // Valor maximo de corriente:
-        maxCor = c - ((b * b) / (4 * a));
-        printf("Max I: %f\n", maxCor);
-        // Tomar semaforo para evitar que la tarea de potencia continue:
-        xSemaphoreTake(xPower2, (TickType_t)portMAX_DELAY);
-        pxParameters->dVmax = maxCor;
-        xSemaphoreGive(xPower2);
+        maxCor = (c - ((b * b) / (4 * a))) + COMPENSACION_CORRIENTE;
 
+        // Esperar a que la tarea de Ángulo se detenga:
+        while (eTaskGetState(xTaskAngle) != eSuspended)
+            vTaskDelay(FACTOR_ESPERA);
+        //Guardar Datos:
+        pxParameters->dImax = (isnan(maxCor) || isinf(maxCor) || (maxCor == 0)) ? maxValue[1] : maxCor;
+
+        // Finalizar tarea:
         ESP_LOGI(TAG, "Fin Max I");
         // Suspender.
         vTaskSuspend(NULL);
@@ -97,13 +107,14 @@ static void vVoltMaxProcess(void *pvArguments)
     // Bucle principal
     for (;;)
     {
-        // Tomar Semaforo:
+        // Tomar Semaforo para detener el procesamiento de las tareas de Voltaje:
         xSemaphoreTake(xReadCount2, (TickType_t)FACTOR_ESPERA);
         // Tiempo para actualizar datos.
         vTaskDelay(1);
         // Sección critica de lectura de datos:
         if (uxSemaphoreGetCount(xReadCount2) == 1)
             xSemaphoreTake(xWriteProcessMutex2, (TickType_t)FACTOR_ESPERA);
+
         for (unsigned short i = 1; i < (QUEUE_LENGTH - 1); i++)
         {
             // Capturar el dato Maximo:
@@ -115,6 +126,7 @@ static void vVoltMaxProcess(void *pvArguments)
         maxValue[1] = (pxParameters->pxdata)->listADC_V[maxdirection];
         // Valor después del valor maximo.
         maxValue[2] = (pxParameters->pxdata)->listADC_V[maxdirection + 1];
+
         // Decidir si cerder o activar la escritura de datos:
         if (uxSemaphoreGetCount(xReadCount2) == 1)
             xSemaphoreGive(xWriteProcessMutex2);
@@ -122,6 +134,7 @@ static void vVoltMaxProcess(void *pvArguments)
         xSemaphoreGive(xReadCount2);
         // Dar oprotunidad a la tarea de ángulo ejecutarse:
         vTaskDelay(FACTOR_ESPERA);
+
         // Relacionado con la interpolacion
         aux1 = (maxValue[1] - maxValue[0]) / (maxTime[1] - maxTime[0]);
         aux2 = (maxValue[2] - maxValue[1]) / (maxTime[2] - maxTime[1]);
@@ -130,12 +143,15 @@ static void vVoltMaxProcess(void *pvArguments)
         b = aux1 - a * (maxTime[1] - maxTime[0]);
         c = maxValue[0] - aux1 * maxTime[0] + a * maxTime[1] * maxTime[0];
         // Valor maximo de corriente:
-        maxVolt = c - ((b * b) / (4 * a));
-        // Tomar semaforo para evitar que la tarea de potencia continue:
-        printf("Max V: %f\n", maxVolt);
-        xSemaphoreTake(xPower1, (TickType_t)portMAX_DELAY);
-        pxParameters->dVmax = maxVolt;
-        xSemaphoreGive(xPower1);
+        maxVolt = (c - ((b * b) / (4 * a))) + COMPENSACION_VOLTAJE;
+
+        // Esperar a que la tarea de Ángulo se detenga:
+        while (eTaskGetState(xTaskAngle) != eSuspended)
+            vTaskDelay(FACTOR_ESPERA);
+        //Guardar Datos:
+        pxParameters->dVmax = (isnan(maxVolt) || isinf(maxVolt) || (maxVolt == 0)) ? maxValue[1] : maxVolt;
+
+        // Finalizar tarea:
         ESP_LOGI(TAG, "Fin Max V");
         // Suspender:
         vTaskSuspend(NULL);

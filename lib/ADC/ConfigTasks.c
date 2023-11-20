@@ -17,6 +17,7 @@ QueueHandle_t time1_queue; // Cola con los valores del instante de Captura de la
 QueueHandle_t time1_RTOS;  // Valor del instante en que el sistema empezo a tomar muestras en relación con el reloj de Freertos.
 QueueHandle_t time2_queue; // Cola con los valores del instante de Captura del Voltaje.
 QueueHandle_t time2_RTOS;  // Valor del instante en que el sistema empezo a tomar muestras en relación con el reloj de Freertos.
+QueueHandle_t powerData;   // Cola para la trasmición de datos de los datos de potencia activa y reactiva.
 
 // Semaforos de control del ADCs:
 SemaphoreHandle_t xMutexProcess1; // Declaración del semáforo del core 0.
@@ -32,11 +33,6 @@ SemaphoreHandle_t xReadCount2;
 
 // Regular el accesso de escritura y lectura de datos sobre el ángulo:
 SemaphoreHandle_t xWriteAngle;
-
-// Regulador de acceso de los valores de voltaje, corriente y angulo para calcular la potencia:
-SemaphoreHandle_t xPower1;
-SemaphoreHandle_t xPower2;
-SemaphoreHandle_t xPower3;
 
 // Regulador de modifición de los arreglos de Volt y Cor. Están cruzados:
 SemaphoreHandle_t xValueCor;
@@ -65,13 +61,11 @@ void initTask()
   xReadCount2 = xSemaphoreCreateCounting(2, 2);
   // Crea un mutex para controlar el aceeso de escritura del ángulo.
   xWriteAngle = xSemaphoreCreateCounting(2, 2);
-  // Crea un mutex para controlar el aceeso a los valores de voltaje, corriente y angulo.
-  xPower1 = xSemaphoreCreateMutex();
-  xPower2 = xSemaphoreCreateMutex();
-  xPower3 = xSemaphoreCreateMutex();
   // Crea un semaforo contador para controlar la modificación de los arreglos Cor Y Volt:
   xValueCor = xSemaphoreCreateMutex();
   xValueVolt = xSemaphoreCreateMutex();
+  //Cola para trasmición de datos de la potencia activa y reactiva:
+  powerData = xQueueCreate(1, sizeof(double[2]));
 }
 
 // Función con las llamadas requeridas para realizar la configuración de los ADCs.
