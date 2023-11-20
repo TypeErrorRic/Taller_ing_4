@@ -1,7 +1,9 @@
-# Funcionamiento de la Tarea de potencia:
+# Funcionamiento del ADC:
 
-> Sistema de Trasmición de datos :
+> Sistema de captura y procesamiento de señales de corriente y entrada:
 
 Descripción del funcionamiento del sistema:
 
-* Salidas entre -10 y 10 voltios
+* Frecuencia de muestreo: 300/600/900 hz
+* Frecuencia de señales a Medir: 60 hz
+* Resolución del timer: 1 Mhz
