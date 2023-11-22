@@ -3,7 +3,7 @@
 
 // Macros de control y de cálculo:
 #define PI 3.141592
-#define SIZE_VER 1
+#define SIZE_VER 5
 
 // Indices para inidicar la potencia:
 #define ACTIVE 0
@@ -34,6 +34,7 @@ static void calculateAngle(void *pvArguments)
     double preValue = 0;
     double currentValue = 0;
     unsigned char flagCorrect = 0x00;
+    unsigned char ignore = 0x00;
     // Calculo de la potencias:
     double power[2] = {};
     // Verificador de Valores:
@@ -49,6 +50,12 @@ static void calculateAngle(void *pvArguments)
     // Bucle principal
     for (;;)
     {
+        //Ignorar el dato luego de la correción de valor:
+        if (flagCorrect == 0x01)
+        {
+            flagCorrect = 0x00;
+            ignore = 0x01;
+        }
         // Calcular el ángulo:
         for (unsigned short i = 0; i < NUM_LN_ONDA; i++)
         {
@@ -120,7 +127,6 @@ static void calculateAngle(void *pvArguments)
                     ESP_LOGE(TAG, "No Coincide");
                     angle = 0;
                 }
-                flagCorrect = 0x00;
             }
         }
         // Salir con error:
@@ -134,18 +140,20 @@ static void calculateAngle(void *pvArguments)
         auxAngle = 0;
 
         // Corrector de Valores:
-        if (angle != 0)
+        if (angle != 0 && ignore == 0x00)
         {
             angleVerific[contadorVer] = angle;
             maxCor[contadorVer] = pxParameters->dImax;
             maxVolt[contadorVer] = pxParameters->dVmax;
             contadorVer++;
         }
+        else
+            ignore = 0x00;
 
         // Cálculo de la potencia:
         if (contadorVer == SIZE_VER)
         {
-            //Tiempo de espera para la realización de la tarea IDLE:
+            // Tiempo de espera para la realización de la tarea IDLE:
             vTaskDelay(FACTOR_ESPERA);
             // Aplicando media a los datos:
             for (unsigned short i = 0; i < SIZE_VER; i++)
