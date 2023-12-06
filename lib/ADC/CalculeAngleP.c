@@ -153,6 +153,9 @@ static void calculateAngle(void *pvArguments)
         // Cálculo de la potencia:
         if (contadorVer == SIZE_VER)
         {
+            //Reinicio de angle:
+            angle = 0;
+            // Variables de correción:
             // Tiempo de espera para la realización de la tarea IDLE:
             vTaskDelay(FACTOR_ESPERA);
             // Aplicando media a los datos:
@@ -166,8 +169,9 @@ static void calculateAngle(void *pvArguments)
             volt /= SIZE_VER;
             cor /= SIZE_VER;
             // Cálculo de la potencia Activa y reativa.
-            power[ACTIVE] = volt * cor * FACTOR_ESCALA_VOLTAJE * FACTOR_ESCALA_CORRIENTE * cosh(angle * (double)PI / 180);
-            power[REACTIVE] = volt * cor * FACTOR_ESCALA_VOLTAJE * FACTOR_ESCALA_CORRIENTE * sinh(angle * (double)PI / 180);
+            power[ACTIVE] = volt * cor * FACTOR_ESCALA_VOLTAJE * FACTOR_ESCALA_CORRIENTE * cos(angle * (double)PI / 180);
+            power[REACTIVE] = volt * cor * FACTOR_ESCALA_VOLTAJE * FACTOR_ESCALA_CORRIENTE * sin(angle * (double)PI / 180);
+            printf("Angle, volt, cor: %f, %f, %f \n", angle, volt, cor);
             // Trasmición de datos a la tarea de potencia:
             if (xQueueSend(powerData, &power, portMAX_DELAY) != pdPASS)
                 ESP_LOGE(TAG, "Error de Trasmicion.");

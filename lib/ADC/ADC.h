@@ -43,8 +43,8 @@
 #define FACTOR_ESCALA_CORRIENTE 1
 
 // Niveles de referencia para la corriente y el voltaje:
-#define REF_VALUE_CORRIENTE (float)0.27
-#define REF_VALUE_VOLTAJE (float)0.27
+#define REF_VALUE_CORRIENTE (float)0.15
+#define REF_VALUE_VOLTAJE (float)0.15
 
 // Estructura de captura de datos de los ADCs:
 typedef struct Capture_Parameters
