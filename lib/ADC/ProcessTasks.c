@@ -10,8 +10,6 @@
 
 #include <ADC.h>
 
-static const char *TAG = "Capture Data";
-
 // Declaración de manejadores de la tarea:
 TaskHandle_t xTaskCorrProcessI;
 TaskHandle_t xTaskVoltProcessV;
@@ -51,6 +49,15 @@ static void vCorrienteProcess(void *pvParameters)
         xSemaphoreTake(xValueCor, (TickType_t)FACTOR_ESPERA);
         // Capturar el instante en el que se empezo a realizar la captura:
         xQueueReceive(time1_RTOS, &timeSeconds, (TickType_t)0);
+        //Sincronizar ejecución:
+        xSemaphoreGive(xControl2); 
+        xSemaphoreTake(xControl1, portMAX_DELAY);
+        //Reiniciar el sistema para evitar desincronizaciones:
+        if(resetI == RESET_AMOUNT)
+        {
+            vTaskDelay(pdMS_TO_TICKS(500));
+            resetI = 0;
+        }
         // Copiar los datos a un arreglo para trasnferirlo a las tareas de Calculo.
         for (unsigned short i = 0; i < QUEUE_LENGTH; i++)
         {
@@ -106,6 +113,15 @@ static void vVoltajeProcess(void *pvParameters)
         xSemaphoreTake(xValueVolt, (TickType_t)FACTOR_ESPERA);
         // Capturar el instante en el que se empezo a realizar la captura:
         xQueueReceive(time2_RTOS, &timeSeconds, (TickType_t)0);
+        //Sincronizar ejecución:
+        xSemaphoreGive(xControl1); 
+        xSemaphoreTake(xControl2, portMAX_DELAY);
+        //Reiniciar el sistema para evitar desincronizaciones:
+        if(resetV == RESET_AMOUNT)
+        {
+            vTaskDelay(pdMS_TO_TICKS(500));
+            resetV = 0;
+        }
         // Copiar los datos a un arreglo para trasnferirlo a las tareas de Calculo.
         for (unsigned short i = 0; i < QUEUE_LENGTH; i++)
         {
@@ -182,7 +198,4 @@ void setupTaskProcessADCs()
     taskADCProcessV.uxPriority = configMAX_PRIORITIES; // Configurar la Maxima prioriodad.
     taskADCProcessV.pvCreatedTask = &xTaskVoltProcessV;
     taskADCProcessV.iCore = 1;
-
-    // Inicializada Corectamente la tarea de procesamiento de datos:
-    ESP_LOGI(TAG, "Tarea de Captura Completa");
 }

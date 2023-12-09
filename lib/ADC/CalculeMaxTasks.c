@@ -1,8 +1,6 @@
 #include <ADC.h>
 #include <math.h>
 
-static const char *TAG = "Max Value";
-
 // Definición de las Tareas:
 taskDefinition taskCorrMaxI;
 taskDefinition taskVoltMaxV;
@@ -174,7 +172,4 @@ void setupTaskCalculeProcess()
     taskVoltMaxV.uxPriority = 5; // Configurar la prioriodad.
     taskVoltMaxV.pvCreatedTask = &xTaskVoltMaxV;
     taskVoltMaxV.iCore = 1;
-
-    // Finalizar tarea:
-    ESP_LOGI(TAG, "Tarea Max Creadas.");
 }

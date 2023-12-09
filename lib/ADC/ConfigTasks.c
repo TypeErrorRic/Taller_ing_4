@@ -38,6 +38,14 @@ SemaphoreHandle_t xWriteAngle;
 SemaphoreHandle_t xValueCor;
 SemaphoreHandle_t xValueVolt;
 
+//Sincronizadores:
+SemaphoreHandle_t xControl1;
+SemaphoreHandle_t xControl2;
+
+//Control:
+unsigned short resetI; 
+unsigned short resetV; 
+
 // Inicializar Tareas de captura:
 void initTask()
 {
@@ -62,10 +70,16 @@ void initTask()
   // Crea un mutex para controlar el aceeso de escritura del ángulo.
   xWriteAngle = xSemaphoreCreateCounting(2, 2);
   // Crea un semaforo contador para controlar la modificación de los arreglos Cor Y Volt:
-  xValueCor = xSemaphoreCreateMutex();
-  xValueVolt = xSemaphoreCreateMutex();
+  xValueCor = xSemaphoreCreateBinary();
+  xValueVolt = xSemaphoreCreateBinary();
   //Cola para trasmición de datos de la potencia activa y reactiva:
   powerData = xQueueCreate(1, sizeof(double[2]));
+  //Sincronizadores para iniciar la captura a tiempos similares:
+  xControl1 = xSemaphoreCreateBinary();
+  xControl2 = xSemaphoreCreateBinary();
+  //Control:
+  resetI = 0;
+  resetV = 0;
 }
 
 // Función con las llamadas requeridas para realizar la configuración de los ADCs.

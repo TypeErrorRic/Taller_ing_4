@@ -64,6 +64,8 @@ static void calculateAngle(void *pvArguments)
     double maxCor[SIZE_VER] = {};
     double maxVolt[SIZE_VER] = {};
     short contadorVer = 0;
+    //Contador para reinicio:
+    short ban = 0;
     // Parametros por default:
     xADCParameters *pxParameters;
     pxParameters = (xADCParameters *)pvArguments;
@@ -82,13 +84,13 @@ static void calculateAngle(void *pvArguments)
             else
             {
                 auxAngle = (pxParameters->dcorteRefVt[i] - pxParameters->dcorteRefIt[i]) * 360 * FRECUENCIA_SENAL;
-                if (auxAngle > 90 || auxAngle < -90)
+                if (auxAngle > 93 || auxAngle < -93)
                 {
                     if ((contador == 0) && (pxParameters->usNumMI == pxParameters->usNumMV))
                     {
                         if (pxParameters->usNumMI == NUM_LN_ONDA)
                         {
-                            ESP_LOGW(TAG, "Corregir angulo Mayor.");
+                            ESP_LOGW(TAG, "Corregir Angulo.");
                             flagCorrect = 0x01;
                             // Determinar el tipo de desfase de 180 grados a realizar:
                             if (auxAngle > BALANCE)
@@ -155,7 +157,9 @@ static void calculateAngle(void *pvArguments)
                     // Salir con error si no son iguales:
                     ESP_LOGE(TAG, "No Coincide");
                     angle = 0;
+                    ban++;
                 }
+                flagCorrect = 0x00;
             }
         }
         // Salir con error:
@@ -174,8 +178,8 @@ static void calculateAngle(void *pvArguments)
             angleVerific[contadorVer] = angle;
             maxCor[contadorVer] = pxParameters->dImax;
             maxVolt[contadorVer] = pxParameters->dVmax;
-            flagCorrect = 0x00;
             contadorVer++;
+            ban = 0;
         }
 
         // Cálculo de la potencia:
@@ -212,21 +216,29 @@ static void calculateAngle(void *pvArguments)
                 // Cálculo de la potencia Activa y reativa.
                 power[ACTIVE] = volt * cor * FACTOR_ESCALA_VOLTAJE * FACTOR_ESCALA_CORRIENTE * cos(angle * (double)PI / 180);
                 power[REACTIVE] = volt * cor * FACTOR_ESCALA_VOLTAJE * FACTOR_ESCALA_CORRIENTE * sin(angle * (double)PI / 180);
-                printf("Angle, volt, cor: %f, %f, %f \n", angle, volt, cor);
                 // Trasmición de datos a la tarea de potencia:
                 if (xQueueSend(powerData, &power, portMAX_DELAY) != pdPASS)
                     ESP_LOGE(TAG, "Error de Trasmicion.");
+                //Result:
+                ESP_LOGI(TAG, "A,V,C: %.2f, %.2f, %.2f", angle, volt, cor);
+                //Contabilizar la cantidad de veces que se ha activado la tarea de potencia:
+                resetI++;
+                resetV++;
             }
             // Reiniciar Cuenta de Verificacion:
             contadorVer = 0;
             volt = 0;
             cor = 0;
         }
-
-        // Finalizar tarea:
-        ESP_LOGI(TAG, "Fin Anngle %.2f", angle);
+        
         // Reiniciar ángulo:
         angle = 0;
+        // Reiniciar Esp32 en caso de desincronizarse:
+        if(ban == 5)
+        {
+            ESP_LOGE(TAG, "Failed.");
+            esp_restart();
+        }
         //  Suspender sistema
         vTaskSuspend(NULL);
     }

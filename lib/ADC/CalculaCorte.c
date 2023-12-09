@@ -1,7 +1,5 @@
 #include <ADC.h>
 
-static const char *TAG = "Cor Value";
-
 // Definición de las Tareas:
 taskDefinition taskCorrCorI;
 taskDefinition taskVoltCorV;
@@ -97,7 +95,7 @@ static void vCorrCor(void *pvArguments)
         pxParameters->usNumMI = contador;
         contador = 0;
         muestraTomadas = 0;
-
+          
         // Decidir si cerder o activar la escritura de datos:
         if (uxSemaphoreGetCount(xWriteAngle) == 1)
         {
@@ -189,7 +187,7 @@ static void vVoltCor(void *pvArguments)
         // Esperar a que la tarea de Ángulo termine de procesar los datos:
         while (eTaskGetState(xTaskAngle) != eSuspended)
             vTaskDelay(FACTOR_ESPERA);
-
+        
         // Reiniciar Variables de Cálculo y guardar datos:
         for (unsigned short i = 0; i < NUM_LN_ONDA; i++)
         {
@@ -235,7 +233,4 @@ void setupTaskCalculeCorProcess()
     taskVoltCorV.uxPriority = 5; // Configurar la prioriodad.
     taskVoltCorV.pvCreatedTask = &xTaskVoltCorV;
     taskVoltCorV.iCore = 1;
-
-    // Finalizar Tarea:
-    ESP_LOGI(TAG, "Creada Tarea de Corte");
 }

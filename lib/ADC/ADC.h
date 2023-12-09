@@ -98,6 +98,9 @@ extern SemaphoreHandle_t xWriteAngle; // Semaforo de control de escritura de dat
 extern SemaphoreHandle_t xValueCor;  // Semaforo para controlar la modificación del tiempo en Cor.
 extern SemaphoreHandle_t xValueVolt; // Semaforo para controlar la modificación del tiempo en Volt.
 
+extern SemaphoreHandle_t xControl1; // Sincronizar el procesamiento de datos en ambos nucleso de ejecución, Nucleo I.
+extern SemaphoreHandle_t xControl2; // Sincronizar el procesamiento de datos en ambos nucleso de ejecución, Nucleo V.
+
 /**** Configuración de Parametros de tiempo del ADC ****/
 typedef struct ADC_Parameters
 {
@@ -149,5 +152,13 @@ extern TaskHandle_t xTaskAngle;
 
 /****************** Inicializar ADCs ******************/
 void initElementsADCs();
+
+/***********************Control************************/
+
+#define RESET_AMOUNT 8
+
+// Variables de control del reinicio del sistema:
+extern unsigned short resetI;
+extern unsigned short resetV;  
 
 #endif

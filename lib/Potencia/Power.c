@@ -47,6 +47,6 @@ void initElementsPower()
 
 void createChannelDAC()
 {
-    dac_output_enable(ACTIVE_POWER_CHANNEL);
-    dac_output_enable(REACTIVE_POWER_CHANNEL);
+    dac_output_enable(DAC_CHAN_0);
+    dac_output_enable(DAC_CHAN_1);
 }
