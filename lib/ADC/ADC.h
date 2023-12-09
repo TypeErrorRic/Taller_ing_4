@@ -161,4 +161,6 @@ void initElementsADCs();
 extern unsigned short resetI;
 extern unsigned short resetV;  
 
+/*########################*R*########################*/
+
 #endif
