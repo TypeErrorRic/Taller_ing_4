@@ -21,6 +21,29 @@ TaskHandle_t xTaskAngle;
 #define DESFASE_NUM 6
 #define BALANCE 90 + DESFASE_NUM
 
+// Función para calcular la media de una serie de valores
+static float calcularMedia(const double valores[], int n)
+{
+    float suma = 0;
+    for (int i = 0; i < n; i++)
+    {
+        suma += valores[i];
+    }
+    return suma / n;
+}
+
+// Función para calcular la desviación estándar de una serie de valores
+static float calcularDesviacionEstandar(const double valores[], int n, float media)
+{
+    float sumaCuadrados = 0;
+    for (int i = 0; i < n; i++)
+    {
+        sumaCuadrados += pow(valores[i] - media, 2);
+    }
+    return sqrt(sumaCuadrados / (n - 1));
+}
+
+// Función para calcular el ángulo:
 static void calculateAngle(void *pvArguments)
 {
     // Variables para calcular el ángulo:
@@ -34,7 +57,6 @@ static void calculateAngle(void *pvArguments)
     double preValue = 0;
     double currentValue = 0;
     unsigned char flagCorrect = 0x00;
-    unsigned char ignore = 0x00;
     // Calculo de la potencias:
     double power[2] = {};
     // Verificador de Valores:
@@ -50,12 +72,6 @@ static void calculateAngle(void *pvArguments)
     // Bucle principal
     for (;;)
     {
-        //Ignorar el dato luego de la correción de valor:
-        if (flagCorrect == 0x01)
-        {
-            flagCorrect = 0x00;
-            ignore = 0x01;
-        }
         // Calcular el ángulo:
         for (unsigned short i = 0; i < NUM_LN_ONDA; i++)
         {
@@ -68,17 +84,30 @@ static void calculateAngle(void *pvArguments)
                 auxAngle = (pxParameters->dcorteRefVt[i] - pxParameters->dcorteRefIt[i]) * 360 * FRECUENCIA_SENAL;
                 if (auxAngle > 90 || auxAngle < -90)
                 {
-                    if (((auxAngle > BALANCE) || (auxAngle < -BALANCE)) && (contador == 0) && (pxParameters->usNumMI == pxParameters->usNumMV))
+                    if ((contador == 0) && (pxParameters->usNumMI == pxParameters->usNumMV))
                     {
                         if (pxParameters->usNumMI == NUM_LN_ONDA)
                         {
                             ESP_LOGW(TAG, "Corregir angulo Mayor.");
                             flagCorrect = 0x01;
-                            // Se corre para que de negativo: desfase cercano a - 180 grados.
-                            for (unsigned short j = 0; j < (NUM_LN_ONDA - 1); j++)
+                            // Determinar el tipo de desfase de 180 grados a realizar:
+                            if (auxAngle > BALANCE)
                             {
-                                angle += (pxParameters->dcorteRefVt[i] - pxParameters->dcorteRefIt[i + 1]) * 360 * FRECUENCIA_SENAL;
-                                contador++;
+                                // Se corre para que de negativo: desfase cercano a - 180 grados.
+                                for (unsigned short j = 0; j < (NUM_LN_ONDA - 1); j++)
+                                {
+                                    angle += (pxParameters->dcorteRefVt[j] - pxParameters->dcorteRefIt[j + 1]) * 360 * FRECUENCIA_SENAL;
+                                    contador++;
+                                }
+                            }
+                            else
+                            {
+                                // Se corre para que de negativo: desfase cercano a + 180 grados.
+                                for (unsigned short j = 0; j < (NUM_LN_ONDA - 1); j++)
+                                {
+                                    angle += (pxParameters->dcorteRefVt[j + 1] - pxParameters->dcorteRefIt[j]) * 360 * FRECUENCIA_SENAL;
+                                    contador++;
+                                }
                             }
                             break;
                         }
@@ -140,41 +169,54 @@ static void calculateAngle(void *pvArguments)
         auxAngle = 0;
 
         // Corrector de Valores:
-        if (angle != 0 && ignore == 0x00)
+        if (angle != 0)
         {
             angleVerific[contadorVer] = angle;
             maxCor[contadorVer] = pxParameters->dImax;
             maxVolt[contadorVer] = pxParameters->dVmax;
+            flagCorrect = 0x00;
             contadorVer++;
         }
-        else
-            ignore = 0x00;
 
         // Cálculo de la potencia:
         if (contadorVer == SIZE_VER)
         {
-            //Reinicio de angle:
+            // Reinicio de angle:
             angle = 0;
-            // Variables de correción:
+            // Corrección de valores:
+            unsigned short datosCorrectos = 0;
+            // Calcular la media y la desviación estándar
+            float media = calcularMedia(angleVerific, SIZE_VER);
+            float desviacionEstandar = calcularDesviacionEstandar(angleVerific, SIZE_VER, media);
+            // Definir un umbral para determinar valores atípicos (por ejemplo, 2 desviaciones estándar)
+            float umbral = 0.7 * desviacionEstandar;
+            // Filtrar los valores atípicos
+            for (int i = 0; i < SIZE_VER; i++)
+            {
+                if (fabs(fabs(angleVerific[i]) - fabs(media)) <= umbral)
+                {
+                    angle += angleVerific[i];
+                    volt += maxVolt[i];
+                    cor += maxCor[i];
+                    datosCorrectos++;
+                }
+            }
             // Tiempo de espera para la realización de la tarea IDLE:
             vTaskDelay(FACTOR_ESPERA);
-            // Aplicando media a los datos:
-            for (unsigned short i = 0; i < SIZE_VER; i++)
+            //Trasmitir datos:
+            if (datosCorrectos != 0)
             {
-                angle += angleVerific[i];
-                volt += maxVolt[i];
-                cor += maxCor[i];
+                angle /= datosCorrectos;
+                volt /= datosCorrectos;
+                cor /= datosCorrectos;
+                // Cálculo de la potencia Activa y reativa.
+                power[ACTIVE] = volt * cor * FACTOR_ESCALA_VOLTAJE * FACTOR_ESCALA_CORRIENTE * cos(angle * (double)PI / 180);
+                power[REACTIVE] = volt * cor * FACTOR_ESCALA_VOLTAJE * FACTOR_ESCALA_CORRIENTE * sin(angle * (double)PI / 180);
+                printf("Angle, volt, cor: %f, %f, %f \n", angle, volt, cor);
+                // Trasmición de datos a la tarea de potencia:
+                if (xQueueSend(powerData, &power, portMAX_DELAY) != pdPASS)
+                    ESP_LOGE(TAG, "Error de Trasmicion.");
             }
-            angle /= SIZE_VER;
-            volt /= SIZE_VER;
-            cor /= SIZE_VER;
-            // Cálculo de la potencia Activa y reativa.
-            power[ACTIVE] = volt * cor * FACTOR_ESCALA_VOLTAJE * FACTOR_ESCALA_CORRIENTE * cos(angle * (double)PI / 180);
-            power[REACTIVE] = volt * cor * FACTOR_ESCALA_VOLTAJE * FACTOR_ESCALA_CORRIENTE * sin(angle * (double)PI / 180);
-            printf("Angle, volt, cor: %f, %f, %f \n", angle, volt, cor);
-            // Trasmición de datos a la tarea de potencia:
-            if (xQueueSend(powerData, &power, portMAX_DELAY) != pdPASS)
-                ESP_LOGE(TAG, "Error de Trasmicion.");
             // Reiniciar Cuenta de Verificacion:
             contadorVer = 0;
             volt = 0;

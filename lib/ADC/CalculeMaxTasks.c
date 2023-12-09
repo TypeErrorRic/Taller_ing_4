@@ -80,8 +80,6 @@ static void vCorrMaxProcess(void *pvArguments)
         //Guardar Datos:
         pxParameters->dImax = (isnan(maxCor) || isinf(maxCor) || (maxCor == 0)) ? maxValue[1] : maxCor;
 
-        // Finalizar tarea:
-        ESP_LOGI(TAG, "Fin Max I");
         // Suspender.
         vTaskSuspend(NULL);
     }
@@ -151,8 +149,6 @@ static void vVoltMaxProcess(void *pvArguments)
         //Guardar Datos:
         pxParameters->dVmax = (isnan(maxVolt) || isinf(maxVolt) || (maxVolt == 0)) ? maxValue[1] : maxVolt;
 
-        // Finalizar tarea:
-        ESP_LOGI(TAG, "Fin Max V");
         // Suspender:
         vTaskSuspend(NULL);
     }
@@ -178,4 +174,7 @@ void setupTaskCalculeProcess()
     taskVoltMaxV.uxPriority = 5; // Configurar la prioriodad.
     taskVoltMaxV.pvCreatedTask = &xTaskVoltMaxV;
     taskVoltMaxV.iCore = 1;
+
+    // Finalizar tarea:
+    ESP_LOGI(TAG, "Tarea Max Creadas.");
 }

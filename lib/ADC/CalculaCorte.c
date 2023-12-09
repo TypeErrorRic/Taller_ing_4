@@ -98,8 +98,6 @@ static void vCorrCor(void *pvArguments)
         contador = 0;
         muestraTomadas = 0;
 
-        // Finalizar Tarea:
-        ESP_LOGI(TAG, "Fin Cor I");
         // Decidir si cerder o activar la escritura de datos:
         if (uxSemaphoreGetCount(xWriteAngle) == 1)
         {
@@ -202,8 +200,6 @@ static void vVoltCor(void *pvArguments)
         contador = 0;
         muestraTomadas = 0;
 
-        // Finalizar Tarea:
-        ESP_LOGI(TAG, "Fin Cor V");
         // Decidir si cerder o activar la escritura de datos:
         if (uxSemaphoreGetCount(xWriteAngle) == 1)
         {
@@ -239,4 +235,7 @@ void setupTaskCalculeCorProcess()
     taskVoltCorV.uxPriority = 5; // Configurar la prioriodad.
     taskVoltCorV.pvCreatedTask = &xTaskVoltCorV;
     taskVoltCorV.iCore = 1;
+
+    // Finalizar Tarea:
+    ESP_LOGI(TAG, "Creada Tarea de Corte");
 }

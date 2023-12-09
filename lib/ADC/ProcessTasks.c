@@ -74,8 +74,6 @@ static void vCorrienteProcess(void *pvParameters)
         xSemaphoreGive(xMutexProcess1);      // Habilitar de nuevo la captura de datos.
         xSemaphoreGive(xWriteProcessMutex1); // Habilitar la lectura de datos.
         xSemaphoreGive(xValueCor);           // Habilitar lectura de arreglos de tiempo.
-        // Finalizar procesamiento de datos:
-        ESP_LOGI(TAG, "Captura I Completa");
         // Activar tareas:
         vTaskResume(xTaskCorrMaxI);
         vTaskResume(xTaskCorrCorI);
@@ -131,8 +129,6 @@ static void vVoltajeProcess(void *pvParameters)
         xSemaphoreGive(xMutexProcess2);      // Habilitar de nuevo la captura de datos.
         xSemaphoreGive(xWriteProcessMutex2); // Habilitar la lectura de datos.
         xSemaphoreGive(xValueVolt);          // Habilitar lectura de arreglos de tiempo.
-        // Finalizar procesamiento de datos:
-        ESP_LOGI(TAG, "Captura v Completa");
         // Activar Tareas:
         vTaskResume(xTaskVoltMaxV);
         vTaskResume(xTaskVoltCorV);
@@ -186,4 +182,7 @@ void setupTaskProcessADCs()
     taskADCProcessV.uxPriority = configMAX_PRIORITIES; // Configurar la Maxima prioriodad.
     taskADCProcessV.pvCreatedTask = &xTaskVoltProcessV;
     taskADCProcessV.iCore = 1;
+
+    // Inicializada Corectamente la tarea de procesamiento de datos:
+    ESP_LOGI(TAG, "Tarea de Captura Completa");
 }
