@@ -51,6 +51,7 @@ static void vCorrienteProcess(void *pvParameters)
         xQueueReceive(time1_RTOS, &timeSeconds, (TickType_t)0);
         //Sincronizar ejecución:
         xSemaphoreGive(xControl2); 
+        vTaskDelay(1);
         xSemaphoreTake(xControl1, portMAX_DELAY);
         //Reiniciar el sistema para evitar desincronizaciones:
         if(resetI == RESET_AMOUNT)
@@ -115,6 +116,7 @@ static void vVoltajeProcess(void *pvParameters)
         xQueueReceive(time2_RTOS, &timeSeconds, (TickType_t)0);
         //Sincronizar ejecución:
         xSemaphoreGive(xControl1); 
+        vTaskDelay(1);
         xSemaphoreTake(xControl2, portMAX_DELAY);
         //Reiniciar el sistema para evitar desincronizaciones:
         if(resetV == RESET_AMOUNT)

@@ -230,7 +230,7 @@ static void calculateAngle(void *pvArguments)
             volt = 0;
             cor = 0;
         }
-        
+
         // Reiniciar ángulo:
         angle = 0;
         // Reiniciar Esp32 en caso de desincronizarse:
