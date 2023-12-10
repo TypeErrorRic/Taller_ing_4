@@ -1,7 +1,7 @@
 /**
  * @file Proyecto de Taller de Ingeniería IV.
  * @author Ricardo Pabón Serna.(ricardo.pabon@correounivalle.edu.co)
- * @brief Este Archivo se encarga de Inicializar y Ejecutar el Muestreo de las Señales.
+ * @brief Este archivo se encarga de Inicializar y Ejecutar el Muestreo de las Señales.
  * @version 0.1
  * @date 2023-10-06
  *

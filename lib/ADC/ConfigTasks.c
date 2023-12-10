@@ -1,7 +1,7 @@
 /**
  * @file Proyecto de Taller de Ingeniería IV.
  * @author Ricardo Pabón Serna.(ricardo.pabon@correounivalle.edu.co)
- * @brief Este Archivo se encarga de declarar e inicializar todas los objectos de freeRTOS usados.
+ * @brief Este archivo se encarga de declarar e inicializar todas los objectos de freeRTOS usados.
  * @version 0.1
  * @date 2023-10-06
  *

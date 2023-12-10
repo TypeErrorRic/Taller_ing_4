@@ -1,3 +1,13 @@
+/**
+ * @file Proyecto de Taller de Ingeniería IV.
+ * @author Ricardo Pabón Serna.(ricardo.pabon@correounivalle.edu.co)
+ * @brief Este archivo contiene las funciones para inicialización y creación de tareas.
+ * @version 0.1
+ * @date 2023-10-06
+ *
+ * @copyright Copyright (c) 2023
+ */
+
 #include "..\..\include\modulosConfig.h"
 
 // Lista de tareas a ejecutar:

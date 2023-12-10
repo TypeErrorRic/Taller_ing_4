@@ -1,3 +1,13 @@
+/**
+ * @file Proyecto de Taller de Ingeniería IV.
+ * @author Ricardo Pabón Serna.(ricardo.pabon@correounivalle.edu.co)
+ * @brief Este es el Header con las librerias y configuraciones necesarias para le funcionamiento del sistema.
+ * @version 0.1
+ * @date 2023-10-06
+ *
+ * @copyright Copyright (c) 2023
+ */
+
 #ifndef CONFIG_SISTEM_H
 #define CONFIG_SISTEM_H
 
