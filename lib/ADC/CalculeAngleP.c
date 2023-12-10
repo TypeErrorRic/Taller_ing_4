@@ -1,3 +1,13 @@
+/**
+ * @file Proyecto de Taller de Ingeniería IV.
+ * @author Ricardo Pabón Serna.(ricardo.pabon@correounivalle.edu.co)
+ * @brief Este Archivo se encarga de Calcular la potencia activa y reactiva, junto con el ángulo de desfase.
+ * @version 0.1
+ * @date 2023-12-01
+ *
+ * @copyright Copyright (c) 2023
+ */
+
 #include <ADC.h>
 #include <math.h>
 

@@ -153,7 +153,7 @@ extern TaskHandle_t xTaskAngle;
 /****************** Inicializar ADCs ******************/
 void initElementsADCs();
 
-/***********************Control************************/
+/********************** Control ***********************/
 
 #define RESET_AMOUNT 8
 
@@ -161,6 +161,6 @@ void initElementsADCs();
 extern unsigned short resetI;
 extern unsigned short resetV;  
 
-/*########################*R*########################*/
+/*####################### *R* #######################*/
 
 #endif

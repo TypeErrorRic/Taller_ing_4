@@ -1,3 +1,13 @@
+/**
+ * @file Proyecto de Taller de Ingeniería IV.
+ * @author Brayan Arley Mena Trejo (brayan.mena@correounivalle.edu.co)
+ * @brief Este Archivo se encarga de trasmitir las respuestas por alguno de los canales del Esp32.
+ * @version 0.1
+ * @date 2023-12-06
+ *
+ * @copyright Copyright (c) 2023
+ */
+
 #include <Power.h>
 
 static const char *TAG = "Power trasmition";

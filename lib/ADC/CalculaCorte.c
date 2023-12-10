@@ -1,3 +1,14 @@
+/**
+ * @file Proyecto de Taller de Ingeniería IV.
+ * @author Ricardo Pabón Serna.(ricardo.pabon@correounivalle.edu.co)
+ * @author Brayan Arley Mena Trejo. (brayan.mena@correounivalle.edu.co)
+ * @brief Este Archivo se encarga de Calcular el punto de corte con el eje t.
+ * @version 0.1
+ * @date 2023-11-06
+ *
+ * @copyright Copyright (c) 2023
+ */
+
 #include <ADC.h>
 
 // Definición de las Tareas:
