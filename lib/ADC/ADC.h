@@ -43,8 +43,8 @@
 #define FACTOR_ESCALA_CORRIENTE 1
 
 // Niveles de referencia para la corriente y el voltaje:
-#define REF_VALUE_CORRIENTE (float)0.15
-#define REF_VALUE_VOLTAJE (float)0.15
+#define REF_VALUE_CORRIENTE (float)0.5
+#define REF_VALUE_VOLTAJE (float)0.5
 
 // Estructura de captura de datos de los ADCs:
 typedef struct Capture_Parameters
@@ -160,6 +160,7 @@ void initElementsADCs();
 // Variables de control del reinicio del sistema:
 extern unsigned short resetI;
 extern unsigned short resetV;  
+extern unsigned short ban;
 
 /*####################### *R* #######################*/
 

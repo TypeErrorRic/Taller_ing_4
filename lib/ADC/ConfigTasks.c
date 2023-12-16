@@ -45,6 +45,7 @@ SemaphoreHandle_t xControl2;
 //Control:
 unsigned short resetI; 
 unsigned short resetV; 
+unsigned short ban;
 
 // Inicializar Tareas de captura:
 void initTask()

@@ -49,15 +49,16 @@ static void vCorrienteProcess(void *pvParameters)
         xSemaphoreTake(xValueCor, (TickType_t)FACTOR_ESPERA);
         // Capturar el instante en el que se empezo a realizar la captura:
         xQueueReceive(time1_RTOS, &timeSeconds, (TickType_t)0);
-        //Sincronizar ejecución:
-        xSemaphoreGive(xControl2); 
+        // Sincronizar ejecución:
+        xSemaphoreGive(xControl2);
         vTaskDelay(2);
         xSemaphoreTake(xControl1, portMAX_DELAY);
-        //Reiniciar el sistema para evitar desincronizaciones:
-        if(resetI == RESET_AMOUNT)
+        // Reiniciar el sistema para evitar desincronizaciones:
+        if (resetI == RESET_AMOUNT)
         {
             vTaskDelay(pdMS_TO_TICKS(500));
             resetI = 0;
+            ban = 0;
         }
         // Copiar los datos a un arreglo para trasnferirlo a las tareas de Calculo.
         for (unsigned short i = 0; i < QUEUE_LENGTH; i++)
@@ -114,12 +115,12 @@ static void vVoltajeProcess(void *pvParameters)
         xSemaphoreTake(xValueVolt, (TickType_t)FACTOR_ESPERA);
         // Capturar el instante en el que se empezo a realizar la captura:
         xQueueReceive(time2_RTOS, &timeSeconds, (TickType_t)0);
-        //Sincronizar ejecución:
-        xSemaphoreGive(xControl1); 
+        // Sincronizar ejecución:
+        xSemaphoreGive(xControl1);
         vTaskDelay(2);
         xSemaphoreTake(xControl2, portMAX_DELAY);
-        //Reiniciar el sistema para evitar desincronizaciones:
-        if(resetV == RESET_AMOUNT)
+        // Reiniciar el sistema para evitar desincronizaciones:
+        if (resetV == RESET_AMOUNT)
         {
             vTaskDelay(pdMS_TO_TICKS(500));
             resetV = 0;
