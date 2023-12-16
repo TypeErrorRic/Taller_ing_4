@@ -2,7 +2,7 @@
  * @file Proyecto de Taller de Ingeniería IV.
  * @author Ricardo Pabón Serna.(ricardo.pabon@correounivalle.edu.co)
  * @brief Este archivo se encarga de Calcular la potencia activa y reactiva, junto con el ángulo de desfase.
- * @version 0.1
+ * @version 1.1
  * @date 2023-12-01
  *
  * @copyright Copyright (c) 2023
@@ -109,7 +109,7 @@ static void calculateAngle(void *pvArguments)
                     {
                         if (pxParameters->usNumMI == NUM_LN_ONDA)
                         {
-                            ESP_LOGW(TAG, "Corr Angulo.");
+                            ESP_LOGW(TAG, "Corregir.");
                             flagCorrect = 0x01;
                             // Determinar el tipo de desfase de 180 grados a realizar:
                             if (auxAngle > BALANCE)
@@ -212,14 +212,14 @@ static void calculateAngle(void *pvArguments)
                     else
                     {
                         // Salir con error si no son iguales:
-                        ESP_LOGE(TAG, "No Coincide");
+                        ESP_LOGE(TAG, "No Coincide.");
                         angle = 0;
                         ban++;
                     }
                 }
                 else
                 {
-                    ESP_LOGE(TAG, "No Consistente");
+                    ESP_LOGE(TAG, "No Consistente.");
                     angle = 0;
                     ban++;
                 }
@@ -316,7 +316,7 @@ void setupTaskCalculeAngle()
     taskAngle.taskId = calculateAngle;
     taskAngle.name = "anguloDesfasePotencia";
     taskAngle.pvParameters = pxADCParameters;
-    taskAngle.sizeTask = 3 * configMINIMAL_STACK_SIZE;
+    taskAngle.sizeTask = 4 * configMINIMAL_STACK_SIZE;
     taskAngle.uxPriority = 3;
     taskAngle.pvCreatedTask = &xTaskAngle;
     taskAngle.iCore = 0;

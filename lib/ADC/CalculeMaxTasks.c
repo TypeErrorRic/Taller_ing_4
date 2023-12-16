@@ -21,7 +21,7 @@ TaskHandle_t xTaskCorrMaxI;
 TaskHandle_t xTaskVoltMaxV;
 
 // Compensación de voltajes con respecto al Osciloscopio:
-#define COMPENSACION_VOLTAJE (float)0.21
+#define COMPENSACION_VOLTAJE (float)0.38
 #define COMPENSACION_CORRIENTE (float)0.11
 
 static void vCorrMaxProcess(void *pvArguments)
