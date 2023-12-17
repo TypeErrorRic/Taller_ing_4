@@ -25,11 +25,10 @@ static void vPowerTrasmition(void *pvParameters)
         //Recivir datos: Si no están listos se queda esperando.
         xQueueReceive(powerData, &datosPower, portMAX_DELAY);
 
-
-        if (datosPower[0] > DAC_MAX_VALUE) active = (uint8_t)(255);
+        if (datosPower[ACTIVE] > DAC_MAX_VALUE) active = (uint8_t)(255);
         else active = (uint8_t)((datosPower[0] / DAC_MAX_VALUE) * 255);
 
-        if (datosPower[1] > DAC_MAX_VALUE) reactive = (uint8_t)(255);
+        if (datosPower[REACTIVE] > DAC_MAX_VALUE) reactive = (uint8_t)(255);
         else reactive = (uint8_t)((datosPower[1] / DAC_MAX_VALUE) * 255);
 
         //Procesamiento para la salida:

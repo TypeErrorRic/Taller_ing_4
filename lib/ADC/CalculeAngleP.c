@@ -278,6 +278,9 @@ static void calculateAngle(void *pvArguments)
                 volt /= datosCorrectos;
                 cor /= datosCorrectos;
                 angleCompartion = angle;
+                //Restarle el nivel de referencia:
+                cor -= REF_VALUE_CORRIENTE;
+                volt -= REF_VALUE_VOLTAJE;
                 // Cálculo de la potencia Activa y reativa.
                 power[ACTIVE] = volt * cor * FACTOR_ESCALA_VOLTAJE * FACTOR_ESCALA_CORRIENTE * cos(angle * (double)PI / 180);
                 power[REACTIVE] = volt * cor * FACTOR_ESCALA_VOLTAJE * FACTOR_ESCALA_CORRIENTE * sin(angle * (double)PI / 180);
