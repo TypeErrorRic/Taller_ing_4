@@ -9,35 +9,40 @@
  */
 
 #include <Power.h>
+#include <math.h>
 
 static const char *TAG = "Power trasmition";
 
-//Definición de la tarea:
-taskDefinition taskPower; 
+// Definición de la tarea:
+taskDefinition taskPower;
 
 static void vPowerTrasmition(void *pvParameters)
 {
     double datosPower[2] = {};
     uint8_t active = 0;
     u_int8_t reactive = 0;
-    for(;;)
+    for (;;)
     {
-        //Recivir datos: Si no están listos se queda esperando.
+        // Recivir datos: Si no están listos se queda esperando.
         xQueueReceive(powerData, &datosPower, portMAX_DELAY);
 
-        if (datosPower[ACTIVE] > DAC_MAX_VALUE) active = (uint8_t)(255);
-        else active = (uint8_t)((datosPower[0] / DAC_MAX_VALUE) * 255);
+        if (datosPower[ACTIVE] > DAC_MAX_VALUE)
+            active = (uint8_t)(255);
+        else
+            active = (uint8_t)((fabs(3 * datosPower[ACTIVE]) / DAC_MAX_VALUE) * 255);
 
-        if (datosPower[REACTIVE] > DAC_MAX_VALUE) reactive = (uint8_t)(255);
-        else reactive = (uint8_t)((datosPower[1] / DAC_MAX_VALUE) * 255);
+        if (datosPower[REACTIVE] > DAC_MAX_VALUE)
+            reactive = (uint8_t)(255);
+        else
+            reactive = (uint8_t)((fabs(3 * datosPower[REACTIVE]) / DAC_MAX_VALUE) * 255);
 
-        //Procesamiento para la salida:
+        // Procesamiento para la salida:
         printf("Potencia Activa : %f\n", datosPower[ACTIVE]);
         printf("Potencia Reactiva : %f\n", datosPower[REACTIVE]);
         dac_output_voltage(DAC_CHAN_0, active);
         dac_output_voltage(DAC_CHAN_1, reactive);
 
-        //Fin de la tarea:
+        // Fin de la tarea:
         ESP_LOGI(TAG, "Tarea Power");
     }
 }
@@ -48,10 +53,10 @@ void initElementsPower()
     taskPower.name = "Power Salidas";
     taskPower.pvParameters = NULL;
     taskPower.sizeTask = 2 * configMINIMAL_STACK_SIZE;
-    taskPower.uxPriority = 3; 
+    taskPower.uxPriority = 3;
     taskPower.pvCreatedTask = NULL;
     taskPower.iCore = 1;
-    createChannelDAC();   
+    createChannelDAC();
 }
 
 void createChannelDAC()

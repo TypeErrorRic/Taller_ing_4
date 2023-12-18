@@ -38,13 +38,13 @@
 // Pin GPIO para el LED incorporado en el ESP32 DevKit
 #define LED_PIN GPIO_NUM_2
 
-// Factores de escala para el Voltaje y la corriente
-#define FACTOR_ESCALA_VOLTAJE 1
+// Factores de escala para el Voltaje y la Corriente
+#define FACTOR_ESCALA_VOLTAJE (float) 47.63
 #define FACTOR_ESCALA_CORRIENTE 1
 
 // Niveles de referencia para la corriente y el voltaje:
-#define REF_VALUE_CORRIENTE (float)0.5
-#define REF_VALUE_VOLTAJE (float)0.5
+#define REF_VALUE_CORRIENTE (float)1.65
+#define REF_VALUE_VOLTAJE (float)1.65
 
 // Estructura de captura de datos de los ADCs:
 typedef struct Capture_Parameters
@@ -159,7 +159,7 @@ void initElementsADCs();
 
 // Variables de control del reinicio del sistema:
 extern unsigned short resetI;
-extern unsigned short resetV;  
+extern unsigned short resetV;
 extern unsigned short ban;
 
 /*####################### *R* #######################*/

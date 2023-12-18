@@ -9,7 +9,8 @@
 #define REACTIVE 1
 #define ACTIVE_POWER_CHANNEL 25
 #define REACTIVE_POWER_CHANNEL 26
-#define DAC_MAX_VALUE 1.0
+
+#define DAC_MAX_VALUE 48
 
 /****************** Inicializar Power Task ******************/
 void initElementsPower();
