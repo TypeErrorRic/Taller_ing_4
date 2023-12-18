@@ -31,10 +31,18 @@ static void vPowerTrasmition(void *pvParameters)
         else
             active = (uint8_t)((fabs(3 * datosPower[ACTIVE]) / DAC_MAX_VALUE) * 255);
 
-        if (datosPower[REACTIVE] > DAC_MAX_VALUE)
+        if (fabs(datosPower[REACTIVE]) > DAC_MAX_VALUE)
             reactive = (uint8_t)(255);
-        else
+        else if (datosPower[REACTIVE] >= 0)
+        {
             reactive = (uint8_t)((fabs(3 * datosPower[REACTIVE]) / DAC_MAX_VALUE) * 255);
+            gpio_set_level(GPIO_PIN, 0);
+        }
+        else if (datosPower[REACTIVE] < 0)
+        {
+            reactive = (uint8_t)((fabs(3 * datosPower[REACTIVE]) / DAC_MAX_VALUE) * 255);
+            gpio_set_level(GPIO_PIN, 1);
+        }
 
         // Procesamiento para la salida:
         printf("Potencia Activa : %f\n", datosPower[ACTIVE]);
@@ -63,4 +71,12 @@ void createChannelDAC()
 {
     dac_output_enable(DAC_CHAN_0);
     dac_output_enable(DAC_CHAN_1);
+    gpio_config_t io_conf = {
+        .pin_bit_mask = (1ULL<<GPIO_PIN),
+        .mode = GPIO_MODE_OUTPUT,
+        .intr_type = GPIO_INTR_DISABLE,
+        .pull_up_en = 0,
+        .pull_down_en = 0
+    };
+    gpio_config(&io_conf);
 }

@@ -9,7 +9,7 @@
 #define REACTIVE 1
 #define ACTIVE_POWER_CHANNEL 25
 #define REACTIVE_POWER_CHANNEL 26
-
+#define GPIO_PIN GPIO_NUM_23
 #define DAC_MAX_VALUE 48
 
 /****************** Inicializar Power Task ******************/
