@@ -31,10 +31,15 @@ void createChannelDAC()
 
 static void vPowerTrasmition(void *pvParameters)
 {
+    // Variables de ejecución:
     double datosPower[2] = {};
     uint8_t active = 0;
     u_int8_t reactive = 0;
     double reactivef, activef = 0;
+    // Medición del tiempo de captura:
+    TickType_t fin = xTaskGetTickCount();
+    TickType_t inicio = (uint32_t)0;
+    TickType_t tiempo_transcurrido = (uint32_t)0;
     for (;;)
     {
         // Recivir datos: Si no están listos se queda esperando.
@@ -42,7 +47,7 @@ static void vPowerTrasmition(void *pvParameters)
         // Valores de la potencia:
         activef = fabs(3 * datosPower[ACTIVE]);
         reactivef = fabs(3 * datosPower[REACTIVE]);
-        //Trasmitir la salida por los DACs:
+        // Trasmitir la salida por los DACs:
         if (datosPower[ACTIVE] > DAC_MAX_VALUE)
             active = (uint8_t)(255);
         else
@@ -68,7 +73,10 @@ static void vPowerTrasmition(void *pvParameters)
         dac_output_voltage(DAC_CHAN_1, reactive);
 
         // Fin de la tarea:
-        ESP_LOGI(TAG, "Tarea Power");
+        inicio = xTaskGetTickCount();
+        tiempo_transcurrido = pdMS_TO_TICKS(inicio - fin);
+        fin = xTaskGetTickCount();
+        ESP_LOGI(TAG, "Tarea Power: %lu ms.", tiempo_transcurrido);
     }
 }
 
