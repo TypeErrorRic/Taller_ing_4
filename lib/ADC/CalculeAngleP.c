@@ -175,15 +175,15 @@ static void calculateAngle(void *pvArguments)
                 media = calcularMedia(preValueArray, SIZE_PREVALUE);
                 desviacionEstandar = calcularDesviacionEstandar(preValueArray, SIZE_PREVALUE, media);
                 // Definir un umbral para determinar valores atípicos (por ejemplo, 2 desviaciones estándar)
-                umbral = 0.5 * desviacionEstandar;
-                //Correción de media:
-                if((media < 0) && (angleCompartion < -35))
+                umbral = 0.6 * desviacionEstandar;
+                // Correción de media:
+                if ((media < 0) && (angleCompartion < -35) && (umbral > 8))
                     media = media - 20;
-                else if((media > 0) && (angleCompartion > 35))
+                else if ((media > 0) && (angleCompartion > 35) && (umbral > 8))
                     media = media + 20;
-                else if((media < 0) && (media < -30))
+                else if ((media < 0) && (media < -30) && (umbral > 8))
                     media = media - 15;
-                else if((media > 0) && (media > 30))
+                else if ((media > 0) && (media > 30) && (umbral > 8))
                     media = media + 15;
                 // Filtrar los valores atípicos
                 for (int i = 0; i < SIZE_PREVALUE; i++)
@@ -194,6 +194,7 @@ static void calculateAngle(void *pvArguments)
                         datosPrevalue++;
                     }
                 }
+                printf("U: %f, m: %f \n", umbral, media);
                 // Valor para evaluación de ánglulo nuevo:
                 if (datosPrevalue != 0)
                 {
@@ -278,7 +279,7 @@ static void calculateAngle(void *pvArguments)
                 volt /= datosCorrectos;
                 cor /= datosCorrectos;
                 angleCompartion = angle;
-                //Restarle el nivel de referencia:
+                // Restarle el nivel de referencia:
                 cor -= REF_VALUE_CORRIENTE;
                 volt -= REF_VALUE_VOLTAJE;
                 // Cálculo de la potencia Activa y reativa.
