@@ -22,6 +22,9 @@ TaskHandle_t xTaskVoltCorV;
 // Mitad del periodo para el cáculo del punto de corte:
 #define CORTE (((float)1 / FRECUENCIA) / 2)
 
+//Ganancia para mejorar el funcionamiento del Esp32:
+#define GANANCIA 100000
+
 static void vCorrCor(void *pvArguments)
 {
     // Valores de captura de dato:
@@ -59,8 +62,8 @@ static void vCorrCor(void *pvArguments)
             // Capturar el dato de corte:
             if ((pxParameters->pxdata)->listT_I[i - 1] >= ((pxParameters->pxdata)->listT_V[0] - CORTE))
             {
-                actualValue = (pxParameters->pxdata)->listADC_I[i] - REF_VALUE_CORRIENTE;
-                preValue = (pxParameters->pxdata)->listADC_I[i - 1] - REF_VALUE_CORRIENTE;
+                actualValue = GANANCIA * ((pxParameters->pxdata)->listADC_I[i] - REF_VALUE_CORRIENTE);
+                preValue = GANANCIA * ((pxParameters->pxdata)->listADC_I[i - 1] - REF_VALUE_CORRIENTE);
                 // Aprovechar el cambio de vencidad entre muestras:
                 if ((actualValue * preValue) < 0)
                 {
@@ -159,8 +162,8 @@ static void vVoltCor(void *pvArguments)
             // Capturar el dato de corte:
             if ((pxParameters->pxdata)->listT_V[i - 1] <= (pxParameters->pxdata)->listT_I[QUEUE_LENGTH - 1])
             {
-                actualValue = (pxParameters->pxdata)->listADC_V[i] - REF_VALUE_VOLTAJE;
-                preValue = (pxParameters->pxdata)->listADC_V[i - 1] - REF_VALUE_VOLTAJE;
+                actualValue = GANANCIA * ((pxParameters->pxdata)->listADC_V[i] - REF_VALUE_VOLTAJE);
+                preValue = GANANCIA * ((pxParameters->pxdata)->listADC_V[i - 1] - REF_VALUE_VOLTAJE);
                 // Aprovechar el cambio de vencidad entre muestras:
                 if ((actualValue * preValue) < 0)
                 {

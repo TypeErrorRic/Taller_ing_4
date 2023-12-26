@@ -27,6 +27,28 @@ void createChannelDAC()
         .pull_up_en = 0,
         .pull_down_en = 0};
     gpio_config(&io_conf);
+    gpio_config_t io_conf2 = {
+        .pin_bit_mask = (1ULL << GPIO_PIN2),
+        .mode = GPIO_MODE_OUTPUT,
+        .intr_type = GPIO_INTR_DISABLE,
+        .pull_up_en = 0,
+        .pull_down_en = 0};
+    gpio_config(&io_conf2);
+    gpio_config_t io_conf3 = {
+        .pin_bit_mask = (1ULL << GPIO_PIN3),
+        .mode = GPIO_MODE_OUTPUT,
+        .intr_type = GPIO_INTR_DISABLE,
+        .pull_up_en = 0,
+        .pull_down_en = 0};
+    gpio_config(&io_conf3);
+    gpio_config_t io_conf4 = {
+        .pin_bit_mask = (1ULL << GPIO_PIN4),
+        .mode = GPIO_MODE_OUTPUT,
+        .intr_type = GPIO_INTR_DISABLE,
+        .pull_up_en = 0,
+        .pull_down_en = 0};
+    gpio_config(&io_conf4);
+    
 }
 
 static void vPowerTrasmition(void *pvParameters)
@@ -55,20 +77,33 @@ static void vPowerTrasmition(void *pvParameters)
 
         if (reactivef > DAC_MAX_VALUE)
             reactive = (uint8_t)(255);
-        else if (datosPower[REACTIVE] >= 0)
+        
+        else if ((datosPower[REACTIVE] <= 0.5) && (datosPower[REACTIVE] >= -0.5))
         {
-            reactive = (uint8_t)((reactivef / DAC_MAX_VALUE) * 255);
-            gpio_set_level(GPIO_PIN, 0);
+            reactive = (uint8_t)(0);
         }
-        else if (datosPower[REACTIVE] < 0)
+        else
         {
-            reactive = (uint8_t)((reactivef / DAC_MAX_VALUE) * 255);
-            gpio_set_level(GPIO_PIN, 1);
+            if (datosPower[REACTIVE] >= 0)
+            {
+                reactive = (uint8_t)((reactivef / DAC_MAX_VALUE) * 255);
+                gpio_set_level(GPIO_PIN, 0);
+                gpio_set_level(GPIO_PIN2, 0);
+                gpio_set_level(GPIO_PIN3, 0);
+                gpio_set_level(GPIO_PIN4, 0);
+            }
+            else if (datosPower[REACTIVE] < 0)
+            {
+                reactive = (uint8_t)((reactivef / DAC_MAX_VALUE) * 255);
+                gpio_set_level(GPIO_PIN, 1);
+                gpio_set_level(GPIO_PIN2, 1);
+                gpio_set_level(GPIO_PIN3, 1);
+                gpio_set_level(GPIO_PIN4, 1);
+            }
         }
 
         // Procesamiento para la salida:
-        printf("Potencia Activa : %f\n", datosPower[ACTIVE]);
-        printf("Potencia Reactiva : %f\n", datosPower[REACTIVE]);
+        
         dac_output_voltage(DAC_CHAN_0, active);
         dac_output_voltage(DAC_CHAN_1, reactive);
 

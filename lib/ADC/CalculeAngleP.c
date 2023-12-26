@@ -175,16 +175,26 @@ static void calculateAngle(void *pvArguments)
                 media = calcularMedia(preValueArray, SIZE_PREVALUE);
                 desviacionEstandar = calcularDesviacionEstandar(preValueArray, SIZE_PREVALUE, media);
                 // Definir un umbral para determinar valores atípicos (por ejemplo, 2 desviaciones estándar)
-                umbral = 0.65 * desviacionEstandar;
+                umbral = 0.75 * desviacionEstandar;
                 // Correción de media:
-                if ((media < 0) && (angleCompartion < -35) && (umbral > 8))
-                    media = media - 20;
-                else if ((media > 0) && (angleCompartion > 35) && (umbral > 8))
-                    media = media + 20;
-                else if ((media < 0) && (media < -30) && (umbral > 8))
+                if ((media < 0) && (angleCompartion < -35) && (umbral > 10) && (umbral <= 20))
                     media = media - 15;
-                else if ((media > 0) && (media > 30) && (umbral > 8))
+                else if ((media > 0) && (angleCompartion > 35) && (umbral > 10) && (umbral <= 20))
                     media = media + 15;
+                else if ((media < 0) && (media < -30) && (umbral > 10) && (umbral <= 20))
+                    media = media - 15;
+                else if ((media > 0) && (media > 30) && (umbral > 10) && (umbral <= 20))
+                    media = media + 15;
+                else if ((media < 0) && (umbral > 20))
+                {
+                    media = media - umbral;
+                    umbral = 0.4 * desviacionEstandar;
+                }
+                else if ((media > 0) && (umbral > 20))
+                {
+                    media = media + umbral;
+                    umbral = 0.4 * desviacionEstandar;
+                }
                 // Filtrar los valores atípicos
                 for (int i = 0; i < SIZE_PREVALUE; i++)
                 {
@@ -258,6 +268,21 @@ static void calculateAngle(void *pvArguments)
             desviacionEstandar = calcularDesviacionEstandar(angleVerific, SIZE_VER, media);
             // Definir un umbral para determinar valores atípicos (por ejemplo, 2 desviaciones estándar)
             umbral = 0.6 * desviacionEstandar;
+            // Correción de media:
+            if ((media < 0) && (media < -30) && (umbral > 10) && (umbral <= 20))
+                media = media - 20;
+            else if ((media > 0) && (media > 30) && (umbral > 10) && (umbral <= 20))
+                media = media + 20;
+            else if ((media < 0) && (umbral > 20))
+            {
+                media = media - umbral;
+                umbral = 0.4 * desviacionEstandar;
+            }
+            else if ((media > 0) && (umbral > 20))
+            {
+                media = media + umbral;
+                umbral = 0.4 * desviacionEstandar;
+            }
             // Filtrar los valores atípicos
             for (int i = 0; i < SIZE_VER; i++)
             {
@@ -302,7 +327,7 @@ static void calculateAngle(void *pvArguments)
         // Reiniciar ángulo:
         angle = 0;
         // Reiniciar Esp32 en caso de desincronizarse:
-        if (ban == 30)
+        if (ban == 20)
         {
             ESP_LOGE(TAG, "Failed.");
             esp_restart();
