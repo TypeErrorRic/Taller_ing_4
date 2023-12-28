@@ -99,7 +99,7 @@ static void calculateAngle(void *pvArguments)
             if ((pxParameters->dImax < REF_VALUE_CORRIENTE) || (pxParameters->dVmax) < REF_VALUE_VOLTAJE)
             {
                 ESP_LOGW(TAG, "Valor no aceptado.");
-                vTaskDelay(10 * FACTOR_ESPERA);
+                vTaskDelay(20 * FACTOR_ESPERA);
                 ban = 0;
                 break;
             }
@@ -185,9 +185,9 @@ static void calculateAngle(void *pvArguments)
                 else if ((media > 35) && (umbral > 12) && (umbral < 20) && (angleComparation > 37))
                     media = media + 12;
                 else if ((media < 0) && (media > -35) && (angleComparation < -75))
-                    media = media - 50;
+                    media = media - 60;
                 else if ((media > 0) && (media < 35) && (angleComparation > 75))
-                    media = media + 50;
+                    media = media + 60;
                 else if ((media < 0) && (umbral > 20))
                 {
                     media = media - umbral;
@@ -274,22 +274,54 @@ static void calculateAngle(void *pvArguments)
             // Definir un umbral para determinar valores atípicos (por ejemplo, 2 desviaciones estándar)
             umbral = 0.6 * desviacionEstandar;
             // Correción de media:
-            if ((media < -25) && (umbral > 12) && (umbral <= 20))
+            if ((angleComparation < 30) && (angleComparation > 20) && (fabs(angleComparation - media) < 25))
+            {
+                if (umbral > 7)
+                {
+                    if (media < angleComparation)
+                        media += 10;
+                    else
+                        media -= 10;
+                }
+                umbral = 0.4 * desviacionEstandar;
+            }
+            else if ((angleComparation > -30) && (angleComparation < -20) && (fabs(angleComparation - media) < 25))
+            {
+                if (umbral > 7)
+                {
+                    if (media < angleComparation)
+                        media += 10;
+                    else
+                        media -= 10;
+                }
+                umbral = 0.4 * desviacionEstandar;
+            }
+            else if ((media < -25) && (umbral > 12) && (umbral <= 20) && (angleComparation < -20))
                 media = media - 12;
-            else if ((media > 25) && (umbral > 12) && (umbral <= 20))
+            else if ((media > 25) && (umbral > 12) && (umbral <= 20) && (angleComparation > 20))
                 media = media + 12;
             else if ((media < 0) && (media > -35) && (umbral > 25) && (angleComparation < -70))
-                media = media - 50;
+                media = media - 60;
             else if ((media > 0) && (media < 35) && (umbral > 25) && (angleComparation > 70))
-                media = media + 50;
-            else if ((media < 0) && (umbral > 20))
+                media = media + 60;
+            else if ((media < 0) && (umbral > 20) && (angleComparation < -25))
             {
                 media = media - umbral;
                 umbral = 0.4 * desviacionEstandar;
             }
-            else if ((media > 0) && (umbral > 20))
+            else if ((media > 0) && (umbral > 20) && (angleComparation > 25))
             {
                 media = media + umbral;
+                umbral = 0.4 * desviacionEstandar;
+            }
+            else if (((media + 10) < angleComparation) && (angleComparation > -25) && (umbral > 7))
+            {
+                media = media + 10;
+                umbral = 0.4 * desviacionEstandar;
+            }
+            else if (((media - 10) > angleComparation) && (angleComparation < 25) && (umbral > 7))
+            {
+                media = media - 10;
                 umbral = 0.4 * desviacionEstandar;
             }
             // Filtrar los valores atípicos

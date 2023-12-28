@@ -1,3 +1,13 @@
+/**
+ * @file Proyecto de Taller de Ingeniería IV.
+ * @author Ricardo Pabón Serna.(ricardo.pabon@correounivalle.edu.co)
+ * @brief Archivo Principal: Medidor de potencia activa y reactiva.
+ * @version 0.1
+ * @date 2023-12-28
+ *
+ * @copyright Copyright (c) 2024
+ */
+
 // Archivos de cabecera para la operación del micro:
 #include <stdio.h>
 #include <string.h>
@@ -35,3 +45,7 @@ void app_main(void)
     // Finalizar.
     ESP_LOGI(TAG, "Inicializacion correcta.");
 }
+
+/**
+ * @note Funciona para valores superiores a 250 mv.
+*/
