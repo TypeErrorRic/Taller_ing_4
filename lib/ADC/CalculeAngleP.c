@@ -84,7 +84,7 @@ static void calculateAngle(void *pvArguments)
     float desviacionEstandar = 0;
     float media = 0;
     float umbral = 0;
-    float angleCompartion = 0;
+    float angleComparation = 0;
     // Parametros por default:
     xADCParameters *pxParameters;
     pxParameters = (xADCParameters *)pvArguments;
@@ -96,9 +96,12 @@ static void calculateAngle(void *pvArguments)
         // Calcular el ángulo:
         for (unsigned short i = 0; i < NUM_LN_ONDA; i++)
         {
-            if ((pxParameters->dcorteRefIt[i] == 0) || (pxParameters->dcorteRefVt[i] == 0))
+            if ((pxParameters->dImax < REF_VALUE_CORRIENTE) || (pxParameters->dVmax) < REF_VALUE_VOLTAJE)
             {
-                ESP_LOGW(TAG, "No se tomo la medida.");
+                ESP_LOGW(TAG, "Valor no aceptado.");
+                vTaskDelay(10 * FACTOR_ESPERA);
+                ban = 0;
+                break;
             }
             else
             {
@@ -175,16 +178,16 @@ static void calculateAngle(void *pvArguments)
                 media = calcularMedia(preValueArray, SIZE_PREVALUE);
                 desviacionEstandar = calcularDesviacionEstandar(preValueArray, SIZE_PREVALUE, media);
                 // Definir un umbral para determinar valores atípicos (por ejemplo, 2 desviaciones estándar)
-                umbral = 0.75 * desviacionEstandar;
+                umbral = 0.55 * desviacionEstandar;
                 // Correción de media:
-                if ((media < 0) && (angleCompartion < -35) && (umbral > 10) && (umbral <= 20))
-                    media = media - 15;
-                else if ((media > 0) && (angleCompartion > 35) && (umbral > 10) && (umbral <= 20))
-                    media = media + 15;
-                else if ((media < 0) && (media < -30) && (umbral > 10) && (umbral <= 20))
-                    media = media - 15;
-                else if ((media > 0) && (media > 30) && (umbral > 10) && (umbral <= 20))
-                    media = media + 15;
+                if ((media < -35) && (umbral > 12) && (umbral < 20) && (angleComparation < -37))
+                    media = media - 12;
+                else if ((media > 35) && (umbral > 12) && (umbral < 20) && (angleComparation > 37))
+                    media = media + 12;
+                else if ((media < 0) && (media > -35) && (angleComparation < -75))
+                    media = media - 50;
+                else if ((media > 0) && (media < 35) && (angleComparation > 75))
+                    media = media + 50;
                 else if ((media < 0) && (umbral > 20))
                 {
                     media = media - umbral;
@@ -204,6 +207,8 @@ static void calculateAngle(void *pvArguments)
                         datosPrevalue++;
                     }
                 }
+                // Tiempo Para ejecutar la tarea IDLE:
+                vTaskDelay(FACTOR_ESPERA);
                 // Valor para evaluación de ánglulo nuevo:
                 if (datosPrevalue != 0)
                 {
@@ -269,10 +274,14 @@ static void calculateAngle(void *pvArguments)
             // Definir un umbral para determinar valores atípicos (por ejemplo, 2 desviaciones estándar)
             umbral = 0.6 * desviacionEstandar;
             // Correción de media:
-            if ((media < 0) && (media < -30) && (umbral > 10) && (umbral <= 20))
-                media = media - 20;
-            else if ((media > 0) && (media > 30) && (umbral > 10) && (umbral <= 20))
-                media = media + 20;
+            if ((media < -25) && (umbral > 12) && (umbral <= 20))
+                media = media - 12;
+            else if ((media > 25) && (umbral > 12) && (umbral <= 20))
+                media = media + 12;
+            else if ((media < 0) && (media > -35) && (umbral > 25) && (angleComparation < -70))
+                media = media - 50;
+            else if ((media > 0) && (media < 35) && (umbral > 25) && (angleComparation > 70))
+                media = media + 50;
             else if ((media < 0) && (umbral > 20))
             {
                 media = media - umbral;
@@ -286,10 +295,10 @@ static void calculateAngle(void *pvArguments)
             // Filtrar los valores atípicos
             for (int i = 0; i < SIZE_VER; i++)
             {
+                volt += maxVolt[i];
                 if (fabs(angleVerific[i] - media) <= umbral)
                 {
                     angle += angleVerific[i];
-                    volt += maxVolt[i];
                     cor += maxCor[i];
                     datosCorrectos++;
                 }
@@ -300,12 +309,12 @@ static void calculateAngle(void *pvArguments)
             if (datosCorrectos != 0)
             {
                 angle /= datosCorrectos;
-                volt /= datosCorrectos;
+                volt /= SIZE_VER;
                 cor /= datosCorrectos;
-                angleCompartion = angle;
+                angleComparation = angle;
                 // Restarle el nivel de referencia:
                 cor -= REF_VALUE_CORRIENTE;
-                volt -= REF_VALUE_VOLTAJE;
+                volt -= (REF_VALUE_VOLTAJE - 0.1);
                 // Cálculo de la potencia Activa y reativa.
                 power[ACTIVE] = volt * cor * FACTOR_ESCALA_VOLTAJE * FACTOR_ESCALA_CORRIENTE * cos(angle * (double)PI / 180);
                 power[REACTIVE] = volt * cor * FACTOR_ESCALA_VOLTAJE * FACTOR_ESCALA_CORRIENTE * sin(angle * (double)PI / 180);

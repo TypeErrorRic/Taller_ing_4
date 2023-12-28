@@ -21,8 +21,6 @@ TaskHandle_t xTaskCorrMaxI;
 TaskHandle_t xTaskVoltMaxV;
 
 // Compensación de voltajes con respecto al Osciloscopio:
-#define COMPENSACION_VOLTAJE (float)0.38
-#define COMPENSACION_CORRIENTE (float)0.11
 
 static void vCorrMaxProcess(void *pvArguments)
 {
@@ -81,7 +79,7 @@ static void vCorrMaxProcess(void *pvArguments)
         b = aux1 - a * (maxTime[1] - maxTime[0]);
         c = maxValue[0] - aux1 * maxTime[0] + a * maxTime[1] * maxTime[0];
         // Valor maximo de corriente:
-        maxCor = (c - ((b * b) / (4 * a))) + COMPENSACION_CORRIENTE;
+        maxCor = (c - ((b * b) / (4 * a)));
 
         // Esperar a que la tarea de Ángulo se detenga:
         while (eTaskGetState(xTaskAngle) != eSuspended)
@@ -150,7 +148,7 @@ static void vVoltMaxProcess(void *pvArguments)
         b = aux1 - a * (maxTime[1] - maxTime[0]);
         c = maxValue[0] - aux1 * maxTime[0] + a * maxTime[1] * maxTime[0];
         // Valor maximo de corriente:
-        maxVolt = (c - ((b * b) / (4 * a))) + COMPENSACION_VOLTAJE;
+        maxVolt = (c - ((b * b) / (4 * a)));
 
         // Esperar a que la tarea de Ángulo se detenga:
         while (eTaskGetState(xTaskAngle) != eSuspended)
